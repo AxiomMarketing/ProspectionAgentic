@@ -39,6 +39,9 @@ import { AgentDealmakerModule } from '@modules/agent-dealmaker/agent-dealmaker.m
 import { AgentAppelsOffresModule } from '@modules/agent-appels-offres/agent-appels-offres.module';
 import { AgentCsmModule } from '@modules/agent-csm/agent-csm.module';
 
+// LLM module
+import { LlmModule } from '@modules/llm/llm.module';
+
 // Functional modules
 import { ProspectsModule } from '@modules/prospects/prospects.module';
 import { DashboardModule } from '@modules/dashboard/dashboard.module';
@@ -107,6 +110,9 @@ import { DashboardModule } from '@modules/dashboard/dashboard.module';
     AgentDealmakerModule,
     AgentAppelsOffresModule,
     AgentCsmModule,
+
+    // LLM
+    LlmModule,
 
     // Functional modules
     ProspectsModule,

@@ -12,7 +12,7 @@ async function main() {
       isActive: true,
       coefficients: {
         firmographic: 0.35,
-        technographic: 0.20,
+        technographic: 0.2,
         behavioral: 0.15,
         engagement: 0.15,
         intent: 0.15,
@@ -23,5 +23,10 @@ async function main() {
 }
 
 main()
-  .catch((e) => { console.error(e); process.exit(1); })
-  .finally(async () => { await prisma.$disconnect(); });
+  .catch((e) => {
+    console.error(e);
+    process.exit(1);
+  })
+  .finally(async () => {
+    await prisma.$disconnect();
+  });

@@ -12,7 +12,11 @@ export class DashboardService {
       by: ['status'],
       _count: { _all: true },
     });
-    return { prospectsByStatus: Object.fromEntries(prospectsByStatus.map((r) => [r.status, r._count._all])) };
+    return {
+      prospectsByStatus: Object.fromEntries(
+        prospectsByStatus.map((r) => [r.status, r._count._all]),
+      ),
+    };
   }
 
   async getAgentStatuses() {
@@ -23,10 +27,15 @@ export class DashboardService {
       _max: { createdAt: true },
       where: { createdAt: { gte: since } },
     });
-    const byAgent: Record<string, { eventType: string; count: number; lastSeen: Date | null }[]> = {};
+    const byAgent: Record<string, { eventType: string; count: number; lastSeen: Date | null }[]> =
+      {};
     for (const e of events) {
       if (!byAgent[e.agentName]) byAgent[e.agentName] = [];
-      byAgent[e.agentName].push({ eventType: e.eventType, count: e._count._all, lastSeen: e._max.createdAt });
+      byAgent[e.agentName].push({
+        eventType: e.eventType,
+        count: e._count._all,
+        lastSeen: e._max.createdAt,
+      });
     }
     return byAgent;
   }

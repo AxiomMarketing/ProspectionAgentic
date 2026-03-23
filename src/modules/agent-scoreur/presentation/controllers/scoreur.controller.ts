@@ -1,6 +1,9 @@
 import { Controller, Get, Post, Body, Param } from '@nestjs/common';
 import { ScoreurService } from '../../application/services/scoreur.service';
-import { CalculateScoreSchema, CalculateScoreDto } from '../../application/dtos/calculate-score.dto';
+import {
+  CalculateScoreSchema,
+  CalculateScoreDto,
+} from '../../application/dtos/calculate-score.dto';
 import { ZodValidationPipe } from '@common/pipes/zod-validation.pipe';
 
 @Controller('api/agents/scoreur')

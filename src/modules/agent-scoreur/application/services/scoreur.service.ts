@@ -37,10 +37,10 @@ export class ScoreurService {
 
     const totalScore = Math.round(
       firmographicScore * DEFAULT_COEFFICIENTS.firmographic +
-      technographicScore * DEFAULT_COEFFICIENTS.technographic +
-      behavioralScore * DEFAULT_COEFFICIENTS.behavioral +
-      engagementScore * DEFAULT_COEFFICIENTS.engagement +
-      intentScore * DEFAULT_COEFFICIENTS.intent,
+        technographicScore * DEFAULT_COEFFICIENTS.technographic +
+        behavioralScore * DEFAULT_COEFFICIENTS.behavioral +
+        engagementScore * DEFAULT_COEFFICIENTS.engagement +
+        intentScore * DEFAULT_COEFFICIENTS.intent,
     );
 
     const segment = this.determineSegment(totalScore);
@@ -60,7 +60,11 @@ export class ScoreurService {
     });
 
     const saved = await this.prospectScoreRepository.save(score);
-    this.eventEmitter.emit('prospect.scored', { prospectId: dto.prospectId, score: totalScore, segment });
+    this.eventEmitter.emit('prospect.scored', {
+      prospectId: dto.prospectId,
+      score: totalScore,
+      segment,
+    });
 
     this.logger.log({ msg: 'Score calculated', prospectId: dto.prospectId, totalScore, segment });
     return saved;

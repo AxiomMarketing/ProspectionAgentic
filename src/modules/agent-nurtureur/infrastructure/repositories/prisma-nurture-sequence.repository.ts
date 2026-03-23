@@ -6,7 +6,9 @@ import { NurtureProspect as PrismaNurtureProspect } from '@prisma/client';
 
 @Injectable()
 export class PrismaNurtureSequenceRepository extends INurtureSequenceRepository {
-  constructor(private readonly prisma: PrismaService) { super(); }
+  constructor(private readonly prisma: PrismaService) {
+    super();
+  }
 
   private toDomain(record: PrismaNurtureProspect): NurtureSequence {
     return NurtureSequence.reconstitute({

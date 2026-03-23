@@ -31,19 +31,45 @@ export class MessageSend {
     return new MessageSend(props);
   }
 
-  get id(): string { return this.props.id; }
-  get prospectId(): string { return this.props.prospectId; }
-  get messageId(): string { return this.props.messageId; }
-  get sequenceId(): string { return this.props.sequenceId; }
-  get fromEmail(): string { return this.props.fromEmail; }
-  get toEmail(): string { return this.props.toEmail; }
-  get subject(): string { return this.props.subject; }
-  get status(): string { return this.props.status; }
-  get sentAt(): Date | undefined { return this.props.sentAt; }
-  get deliveredAt(): Date | undefined { return this.props.deliveredAt; }
-  get openedAt(): Date | undefined { return this.props.openedAt; }
-  get repliedAt(): Date | undefined { return this.props.repliedAt; }
-  get createdAt(): Date { return this.props.createdAt; }
+  get id(): string {
+    return this.props.id;
+  }
+  get prospectId(): string {
+    return this.props.prospectId;
+  }
+  get messageId(): string {
+    return this.props.messageId;
+  }
+  get sequenceId(): string {
+    return this.props.sequenceId;
+  }
+  get fromEmail(): string {
+    return this.props.fromEmail;
+  }
+  get toEmail(): string {
+    return this.props.toEmail;
+  }
+  get subject(): string {
+    return this.props.subject;
+  }
+  get status(): string {
+    return this.props.status;
+  }
+  get sentAt(): Date | undefined {
+    return this.props.sentAt;
+  }
+  get deliveredAt(): Date | undefined {
+    return this.props.deliveredAt;
+  }
+  get openedAt(): Date | undefined {
+    return this.props.openedAt;
+  }
+  get repliedAt(): Date | undefined {
+    return this.props.repliedAt;
+  }
+  get createdAt(): Date {
+    return this.props.createdAt;
+  }
 
   markAsSent(): MessageSend {
     return new MessageSend({ ...this.props, status: 'sent', sentAt: new Date() });
@@ -65,5 +91,7 @@ export class MessageSend {
     return new MessageSend({ ...this.props, status: 'failed', failureReason: reason });
   }
 
-  toPlainObject(): MessageSendProps { return { ...this.props }; }
+  toPlainObject(): MessageSendProps {
+    return { ...this.props };
+  }
 }

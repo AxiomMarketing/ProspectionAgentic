@@ -1,0 +1,2404 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Specifications Detaillees — 7 Agents de Prospection Axiom</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #0A0B0F;
+            --bg-surface: #111320;
+            --bg-elevated: #1A1B24;
+            --bg-hover: #22232E;
+            --text: #F1F5F9;
+            --text-secondary: #94A3B8;
+            --text-muted: #8494A7;
+            --accent: #3B82F6;
+            --accent-hover: #2563EB;
+            --cyan: #22D3EE;
+            --amber: #F59E0B;
+            --red: #EF4444;
+            --green: #10B981;
+            --border: rgba(255, 255, 255, 0.08);
+            --border-hover: rgba(255, 255, 255, 0.15);
+            --font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            --violet: #8B5CF6;
+            --orange: #F97316;
+            --pink: #EC4899;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: var(--font);
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+            background-attachment: fixed;
+            overflow-x: hidden;
+        }
+
+        /* SVG Noise Overlay */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image:
+                url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100"><filter id="noise"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="4" result="noise" /></filter><rect width="100" height="100" fill="%23000000" opacity="0.02" filter="url(%23noise)" /></svg>');
+            pointer-events: none;
+            z-index: 1;
+            mix-blend-mode: overlay;
+        }
+
+        main {
+            position: relative;
+            z-index: 2;
+        }
+
+        /* Sidebar Navigation */
+        .sidebar {
+            position: fixed;
+            left: 0;
+            top: 0;
+            width: 280px;
+            height: 100vh;
+            background: var(--bg-surface);
+            border-right: 1px solid var(--border);
+            padding: 2rem 0;
+            overflow-y: auto;
+            z-index: 100;
+        }
+
+        .sidebar-title {
+            padding: 0 1.5rem 2rem;
+            font-size: 0.875rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--text-muted);
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 2rem;
+        }
+
+        .nav-section {
+            margin-bottom: 2rem;
+            padding: 0 1rem;
+        }
+
+        .nav-section-title {
+            padding: 0.5rem 0.5rem;
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            color: var(--text-muted);
+            margin-bottom: 0.75rem;
+        }
+
+        .nav-link {
+            display: block;
+            padding: 0.75rem 0.75rem;
+            margin-bottom: 0.5rem;
+            border-radius: 0.5rem;
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 0.875rem;
+            transition: all 0.3s ease;
+            border-left: 2px solid transparent;
+        }
+
+        .nav-link:hover {
+            background: var(--bg-hover);
+            color: var(--text);
+            border-left-color: var(--accent);
+        }
+
+        .nav-link.active {
+            background: rgba(59, 130, 246, 0.1);
+            color: var(--accent);
+            border-left-color: var(--accent);
+            font-weight: 600;
+        }
+
+        /* Main Content */
+        main {
+            margin-left: 280px;
+            padding: 0;
+        }
+
+        /* Header Hero */
+        .header {
+            position: relative;
+            padding: 4rem 2rem;
+            background: linear-gradient(135deg,
+                rgba(59, 130, 246, 0.15) 0%,
+                rgba(34, 211, 238, 0.1) 50%,
+                rgba(8, 145, 178, 0.05) 100%);
+            border-bottom: 1px solid var(--border);
+            min-height: 400px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+        }
+
+        .header-content {
+            max-width: 900px;
+            z-index: 2;
+        }
+
+        .header h1 {
+            font-size: 3.5rem;
+            font-weight: 800;
+            margin-bottom: 1rem;
+            background: linear-gradient(135deg, var(--cyan), var(--accent), var(--blue));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .header .meta {
+            display: flex;
+            gap: 2rem;
+            justify-content: center;
+            margin-top: 1.5rem;
+            flex-wrap: wrap;
+        }
+
+        .meta-item {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+        }
+
+        .meta-item strong {
+            color: var(--text);
+            display: block;
+            font-weight: 600;
+        }
+
+        /* Section Container */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+        }
+
+        section {
+            padding: 4rem 0;
+            border-bottom: 1px solid var(--border);
+        }
+
+        section:last-child {
+            border-bottom: none;
+            padding-bottom: 6rem;
+        }
+
+        h2 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            color: var(--text);
+        }
+
+        h3 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin: 2rem 0 1rem;
+            color: var(--text);
+        }
+
+        h4 {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin: 1.5rem 0 0.75rem;
+            color: var(--text);
+        }
+
+        p {
+            color: var(--text-secondary);
+            margin-bottom: 1rem;
+        }
+
+        /* Vision Pipeline SVG */
+        .pipeline-diagram {
+            background: var(--bg-elevated);
+            border: 1px solid var(--border);
+            border-radius: 1rem;
+            padding: 2rem;
+            margin: 2rem 0;
+            overflow-x: auto;
+        }
+
+        .pipeline-svg {
+            min-width: 100%;
+            height: auto;
+        }
+
+        /* Agent Cards */
+        .agent-card {
+            background: var(--bg-elevated);
+            border: 1px solid var(--border);
+            border-radius: 1rem;
+            padding: 2rem;
+            margin: 2rem 0;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .agent-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, currentColor, transparent);
+        }
+
+        .agent-card:hover {
+            border-color: var(--border-hover);
+            background: var(--bg-hover);
+        }
+
+        .agent-1 { color: var(--cyan); }
+        .agent-2 { color: var(--accent); }
+        .agent-3 { color: var(--amber); }
+        .agent-4 { color: var(--green); }
+        .agent-5 { color: var(--violet); }
+        .agent-6 { color: var(--orange); }
+        .agent-7 { color: var(--pink); }
+
+        .agent-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .agent-badge {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 60px;
+            height: 60px;
+            border-radius: 0.75rem;
+            background: currentColor;
+            opacity: 0.15;
+            font-weight: 700;
+            font-size: 1.5rem;
+            color: currentColor;
+        }
+
+        .agent-title {
+            flex: 1;
+        }
+
+        .agent-title h3 {
+            margin: 0;
+            font-size: 1.5rem;
+        }
+
+        .agent-number {
+            color: currentColor;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+        }
+
+        /* Sections Collapsibles */
+        details {
+            margin: 1.5rem 0;
+        }
+
+        summary {
+            cursor: pointer;
+            padding: 1rem;
+            background: var(--bg-hover);
+            border: 1px solid var(--border);
+            border-radius: 0.5rem;
+            font-weight: 600;
+            user-select: none;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        summary::marker {
+            color: var(--text-secondary);
+        }
+
+        summary:hover {
+            background: rgba(59, 130, 246, 0.1);
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+
+        details[open] summary {
+            border-bottom: 1px solid var(--border);
+            border-radius: 0.5rem 0.5rem 0 0;
+        }
+
+        details > div {
+            background: var(--bg-surface);
+            border: 1px solid var(--border);
+            border-top: none;
+            padding: 1.5rem;
+            border-radius: 0 0 0.5rem 0.5rem;
+        }
+
+        /* Code Blocks */
+        pre {
+            background: var(--bg-surface);
+            border: 1px solid var(--border);
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+            overflow-x: auto;
+            margin: 1.5rem 0;
+            font-size: 0.85rem;
+            line-height: 1.5;
+            color: var(--text-secondary);
+        }
+
+        code {
+            font-family: 'Courier New', monospace;
+            color: var(--text);
+        }
+
+        pre code {
+            color: var(--text-secondary);
+        }
+
+        .code-label {
+            display: inline-block;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--text-muted);
+            margin-bottom: 0.5rem;
+            margin-left: 1.5rem;
+        }
+
+        /* Tables */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1.5rem 0;
+            border-radius: 0.5rem;
+            overflow: hidden;
+            border: 1px solid var(--border);
+        }
+
+        thead {
+            background: var(--bg-elevated);
+        }
+
+        thead th {
+            padding: 1rem;
+            text-align: left;
+            font-weight: 600;
+            color: var(--text);
+            border-bottom: 1px solid var(--border);
+            font-size: 0.875rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        tbody td {
+            padding: 0.875rem 1rem;
+            border-bottom: 1px solid var(--border);
+            color: var(--text-secondary);
+        }
+
+        tbody tr:hover {
+            background: var(--bg-hover);
+        }
+
+        tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        /* Cartes de Valeur */
+        .value-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin: 2rem 0;
+        }
+
+        .value-card {
+            background: var(--bg-elevated);
+            border: 1px solid var(--border);
+            border-radius: 1rem;
+            padding: 1.5rem;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .value-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: currentColor;
+        }
+
+        .value-card:hover {
+            transform: translateY(-4px);
+            border-color: currentColor;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .value-card h4 {
+            margin: 0 0 0.75rem 0;
+            color: var(--text);
+        }
+
+        .value-card p {
+            margin: 0;
+            font-size: 0.875rem;
+        }
+
+        /* Timeline */
+        .timeline {
+            position: relative;
+            padding: 2rem 0;
+        }
+
+        .timeline::before {
+            content: '';
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 2px;
+            height: 100%;
+            background: var(--border);
+        }
+
+        .timeline-item {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            margin-bottom: 2rem;
+            position: relative;
+        }
+
+        .timeline-item:nth-child(odd) .timeline-content {
+            text-align: right;
+        }
+
+        .timeline-marker {
+            position: absolute;
+            left: 50%;
+            top: 1rem;
+            transform: translateX(-50%);
+            width: 16px;
+            height: 16px;
+            background: var(--accent);
+            border: 3px solid var(--bg);
+            border-radius: 50%;
+            z-index: 2;
+        }
+
+        .timeline-content {
+            background: var(--bg-elevated);
+            border: 1px solid var(--border);
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+        }
+
+        .timeline-content h4 {
+            margin: 0 0 0.5rem 0;
+        }
+
+        /* Coût Box */
+        .cost-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin: 2rem 0;
+        }
+
+        .cost-item {
+            background: var(--bg-elevated);
+            border: 1px solid var(--border);
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .cost-label {
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+        }
+
+        .cost-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--accent);
+        }
+
+        /* SQL Database Schema */
+        .db-schema {
+            background: var(--bg-elevated);
+            border: 1px solid var(--border-hover);
+            border-left: 4px solid var(--accent);
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+            margin: 2rem 0;
+        }
+
+        .db-schema::before {
+            content: '⚙ ';
+            margin-right: 0.5rem;
+            color: var(--accent);
+        }
+
+        .db-schema h4 {
+            margin: 0 0 1rem 0;
+        }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .sidebar {
+                transform: translateX(-100%);
+                transition: transform 0.3s ease;
+                z-index: 1000;
+            }
+
+            .sidebar.active {
+                transform: translateX(0);
+            }
+
+            main {
+                margin-left: 0;
+            }
+
+            .header h1 {
+                font-size: 2.5rem;
+            }
+
+            .timeline::before {
+                left: 0;
+                height: auto;
+            }
+
+            .timeline-item {
+                grid-template-columns: 1fr;
+            }
+
+            .timeline-item:nth-child(odd) .timeline-content {
+                text-align: left;
+            }
+
+            .timeline-marker {
+                left: 0;
+                top: auto;
+                bottom: auto;
+                transform: translateX(-8px);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 240px;
+            }
+
+            .header h1 {
+                font-size: 2rem;
+            }
+
+            h2 {
+                font-size: 1.75rem;
+            }
+
+            section {
+                padding: 2rem 0;
+            }
+
+            .header {
+                padding: 2rem 1rem;
+                min-height: auto;
+            }
+
+            .value-cards {
+                grid-template-columns: 1fr;
+            }
+
+            .meta {
+                flex-direction: column;
+                gap: 1rem !important;
+            }
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--bg);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--border);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--border-hover);
+        }
+
+        /* Highlighter pour mots clés */
+        .highlight {
+            background: rgba(59, 130, 246, 0.1);
+            color: var(--accent);
+            padding: 0.125rem 0.375rem;
+            border-radius: 0.25rem;
+        }
+
+        /* Statut badges */
+        .badge {
+            display: inline-block;
+            padding: 0.375rem 0.75rem;
+            border-radius: 0.375rem;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .badge-hot {
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--red);
+        }
+
+        .badge-warm {
+            background: rgba(245, 158, 11, 0.1);
+            color: var(--amber);
+        }
+
+        .badge-cold {
+            background: rgba(59, 130, 246, 0.1);
+            color: var(--accent);
+        }
+
+        /* JSON Pretty Print */
+        .json-value {
+            color: var(--green);
+        }
+
+        .json-key {
+            color: var(--accent);
+        }
+
+        .json-string {
+            color: var(--cyan);
+        }
+
+        /* Menu Toggle */
+        .menu-toggle {
+            display: none;
+            position: fixed;
+            top: 1rem;
+            left: 1rem;
+            z-index: 999;
+            width: 40px;
+            height: 40px;
+            background: var(--bg-elevated);
+            border: 1px solid var(--border);
+            border-radius: 0.5rem;
+            color: var(--text);
+            cursor: pointer;
+        }
+
+        @media (max-width: 1024px) {
+            .menu-toggle {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation Sidebar -->
+    <nav class="sidebar" id="sidebar">
+        <div class="sidebar-title">Axiom Prospection</div>
+
+        <div class="nav-section">
+            <div class="nav-section-title">Document</div>
+            <a href="#vision" class="nav-link">Vision Globale</a>
+            <a href="#database" class="nav-link">Base de Données</a>
+        </div>
+
+        <div class="nav-section">
+            <div class="nav-section-title">Agents</div>
+            <a href="#agent-1" class="nav-link">1. Veilleur</a>
+            <a href="#agent-2" class="nav-link">2. Enrichisseur</a>
+            <a href="#agent-3" class="nav-link">3. Scoreur</a>
+            <a href="#agent-4" class="nav-link">4. Redacteur</a>
+            <a href="#agent-5" class="nav-link">5. Suiveur</a>
+            <a href="#agent-6" class="nav-link">6. Nurtureur</a>
+            <a href="#agent-7" class="nav-link">7. Analyste</a>
+        </div>
+
+        <div class="nav-section">
+            <div class="nav-section-title">Ressources</div>
+            <a href="#costs" class="nav-link">Coûts</a>
+            <a href="#timeline" class="nav-link">Ordre Construction</a>
+        </div>
+    </nav>
+
+    <button class="menu-toggle" onclick="document.getElementById('sidebar').classList.toggle('active')">☰</button>
+
+    <!-- Contenu Principal -->
+    <main>
+        <!-- Header Hero -->
+        <header class="header">
+            <div class="header-content">
+                <h1>Specifications Detaillees</h1>
+                <p style="font-size: 1.25rem; color: var(--text-secondary); margin-top: 1rem;">7 Agents de Prospection Axiom</p>
+                <div class="meta">
+                    <div class="meta-item">
+                        <strong>Date</strong>
+                        18 mars 2026
+                    </div>
+                    <div class="meta-item">
+                        <strong>Stack</strong>
+                        Claude API, n8n, AdonisJS, React, PostgreSQL
+                    </div>
+                    <div class="meta-item">
+                        <strong>Status</strong>
+                        <span class="badge" style="background: rgba(16, 185, 129, 0.1); color: var(--green);">Pret Dev</span>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <div class="container">
+            <!-- VISION GLOBALE -->
+            <section id="vision">
+                <h2>Vision Globale</h2>
+                <p>Tout est developpe en interne. Chaque agent a une mission claire, des inputs precis, un processus detaille, et des outputs structures.</p>
+
+                <div class="pipeline-diagram">
+                    <svg class="pipeline-svg" viewBox="0 0 1000 500" xmlns="http://www.w3.org/2000/svg">
+                        <!-- Define styles -->
+                        <defs>
+                            <style>
+                                .db-box { fill: rgba(59, 130, 246, 0.1); stroke: rgb(59, 130, 246); stroke-width: 2; }
+                                .agent-box { fill: rgba(26, 27, 36, 0.8); stroke: rgb(240, 240, 240); stroke-width: 2; }
+                                .arrow { stroke: rgb(148, 163, 184); stroke-width: 2; fill: none; marker-end: url(#arrowhead); }
+                                .text-large { font-size: 16px; font-weight: bold; fill: rgb(241, 245, 249); }
+                                .text-small { font-size: 12px; fill: rgb(148, 163, 184); }
+                            </style>
+                            <marker id="arrowhead" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+                                <polygon points="0 0, 10 3, 0 6" fill="rgb(148, 163, 184)"/>
+                            </marker>
+                        </defs>
+
+                        <!-- Database Central -->
+                        <rect x="350" y="20" width="300" height="80" rx="8" class="db-box"/>
+                        <text x="500" y="50" text-anchor="middle" class="text-large">BASE DE DONNEES</text>
+                        <text x="500" y="70" text-anchor="middle" class="text-small">PostgreSQL Central</text>
+
+                        <!-- Arrow down -->
+                        <path d="M 500 100 L 500 130" class="arrow"/>
+
+                        <!-- Agent 1 -->
+                        <rect x="20" y="150" width="110" height="80" rx="8" class="agent-box"/>
+                        <text x="75" y="175" text-anchor="middle" class="text-large">AGENT 1</text>
+                        <text x="75" y="195" text-anchor="middle" class="text-small">VEILLEUR</text>
+                        <path d="M 130 190 L 200 190" class="arrow" stroke="rgb(34, 211, 238)"/>
+
+                        <!-- Agent 2 -->
+                        <rect x="200" y="150" width="110" height="80" rx="8" class="agent-box"/>
+                        <text x="255" y="175" text-anchor="middle" class="text-large">AGENT 2</text>
+                        <text x="255" y="195" text-anchor="middle" class="text-small">ENRICHISSEUR</text>
+                        <path d="M 310 190 L 380 190" class="arrow" stroke="rgb(59, 130, 246)"/>
+
+                        <!-- Agent 3 -->
+                        <rect x="380" y="150" width="110" height="80" rx="8" class="agent-box"/>
+                        <text x="435" y="175" text-anchor="middle" class="text-large">AGENT 3</text>
+                        <text x="435" y="195" text-anchor="middle" class="text-small">SCOREUR</text>
+                        <path d="M 490 190 L 560 190" class="arrow" stroke="rgb(245, 158, 11)"/>
+
+                        <!-- Agent 4 -->
+                        <rect x="560" y="150" width="110" height="80" rx="8" class="agent-box"/>
+                        <text x="615" y="175" text-anchor="middle" class="text-large">AGENT 4</text>
+                        <text x="615" y="195" text-anchor="middle" class="text-small">REDACTEUR</text>
+                        <path d="M 670 190 L 740 190" class="arrow" stroke="rgb(16, 185, 129)"/>
+
+                        <!-- Agent 5 -->
+                        <rect x="740" y="150" width="110" height="80" rx="8" class="agent-box"/>
+                        <text x="795" y="175" text-anchor="middle" class="text-large">AGENT 5</text>
+                        <text x="795" y="195" text-anchor="middle" class="text-small">SUIVEUR</text>
+                        <path d="M 795 230 L 795 280" class="arrow" stroke="rgb(139, 92, 246)"/>
+
+                        <!-- Split for Agents 6 & 7 -->
+                        <path d="M 795 280 L 650 280" class="arrow" stroke="rgb(139, 92, 246)"/>
+                        <path d="M 795 280 L 940 280" class="arrow" stroke="rgb(139, 92, 246)"/>
+
+                        <!-- Agent 6 -->
+                        <rect x="575" y="300" width="110" height="80" rx="8" class="agent-box"/>
+                        <text x="630" y="325" text-anchor="middle" class="text-large">AGENT 6</text>
+                        <text x="630" y="345" text-anchor="middle" class="text-small">NURTUREUR</text>
+
+                        <!-- Agent 7 -->
+                        <rect x="865" y="300" width="110" height="80" rx="8" class="agent-box"/>
+                        <text x="920" y="325" text-anchor="middle" class="text-large">AGENT 7</text>
+                        <text x="920" y="345" text-anchor="middle" class="text-small">ANALYSTE</text>
+                    </svg>
+                </div>
+
+                <h3>Flux Principal</h3>
+                <ol style="color: var(--text-secondary); margin-left: 2rem; line-height: 2;">
+                    <li>Le <span class="highlight">VEILLEUR</span> detecte un signal ou un nouveau lead</li>
+                    <li>L'<span class="highlight">ENRICHISSEUR</span> complete la fiche avec toutes les donnees necessaires</li>
+                    <li>Le <span class="highlight">SCOREUR</span> attribue un score et decide du traitement (HOT / WARM / COLD)</li>
+                    <li>Le <span class="highlight">REDACTEUR</span> ecrit le message personnalise adapte au canal et au score</li>
+                    <li>Le <span class="highlight">SUIVEUR</span> gere la sequence (quand envoyer quoi, relances, escalade)</li>
+                    <li>Le <span class="highlight">NURTUREUR</span> prend en charge les non-convertis pour les rechauffer</li>
+                    <li>L'<span class="highlight">ANALYSTE</span> mesure tout et recommande des ajustements</li>
+                </ol>
+
+                <div class="agent-card" style="background: rgba(239, 68, 68, 0.05); border-color: rgba(239, 68, 68, 0.2); margin-top: 2rem;">
+                    <h4 style="color: var(--red); margin-top: 0;">Regle Absolue</h4>
+                    <p><strong>Jonathan et Marty ne touchent que 2 choses :</strong></p>
+                    <ul style="color: var(--text-secondary); margin-left: 2rem;">
+                        <li>Valider l'envoi des messages HOT (prospects a forte valeur)</li>
+                        <li>Prendre les appels decouverte et closer</li>
+                    </ul>
+                    <p style="margin-bottom: 0;"><strong>Tout le reste est automatise.</strong></p>
+                </div>
+            </section>
+
+            <!-- DATABASE SCHEMA -->
+            <section id="database">
+                <h2>Schema de la Base de Donnees</h2>
+                <p>Structure centralisee que tous les agents partagent :</p>
+
+                <div class="db-schema">
+                    <h4>Table principale : prospects</h4>
+                </div>
+
+                <div class="code-label">SQL Schema</div>
+                <pre><code>CREATE TABLE prospects (
+  id              SERIAL PRIMARY KEY,
+  statut          VARCHAR(20) DEFAULT 'nouveau',
+  score           INTEGER DEFAULT 0,
+  categorie       VARCHAR(10),  -- HOT | WARM | COLD
+  segment         VARCHAR(50),  -- pme_metro | ecommerce_shopify | collectivite | startup | agence_wl
+
+  -- Contact
+  prenom          VARCHAR(100),
+  nom             VARCHAR(100),
+  email           VARCHAR(255),
+  telephone       VARCHAR(20),
+  linkedin_url    VARCHAR(500),
+  poste           VARCHAR(200),
+
+  -- Entreprise
+  entreprise      VARCHAR(200),
+  siret           VARCHAR(20),
+  site_web        VARCHAR(500),
+  secteur         VARCHAR(100),
+  taille          VARCHAR(50),   -- 1-10 | 10-50 | 50-200 | 200-500 | 500+
+  ca_estime       VARCHAR(50),
+  localisation    VARCHAR(200),
+
+  -- Donnees techniques
+  stack_tech      JSONB,
+  lighthouse_score INTEGER,
+  rgaa_conforme   BOOLEAN,
+  temps_chargement FLOAT,
+
+  -- Signaux
+  signaux         JSONB,
+  signal_principal VARCHAR(200),
+  date_signal     TIMESTAMP,
+
+  -- Suivi prospection
+  source          VARCHAR(50),
+  canal_prefere   VARCHAR(20),
+  sequence_id     INTEGER,
+  nb_contacts     INTEGER DEFAULT 0,
+  dernier_contact TIMESTAMP,
+  prochaine_action VARCHAR(200),
+  date_prochaine  TIMESTAMP,
+
+  notes           TEXT,
+  created_at      TIMESTAMP DEFAULT NOW(),
+  updated_at      TIMESTAMP DEFAULT NOW()
+);</code></pre>
+
+                <div class="db-schema">
+                    <h4>Table interactions</h4>
+                </div>
+
+                <div class="code-label">SQL Schema</div>
+                <pre><code>CREATE TABLE interactions (
+  id              SERIAL PRIMARY KEY,
+  prospect_id     INTEGER REFERENCES prospects(id),
+  type            VARCHAR(30),   -- email_envoye | email_ouvert | email_repondu | linkedin_connexion | linkedin_message
+  canal           VARCHAR(20),   -- email | linkedin | phone | visio
+  contenu         TEXT,
+  template_id     VARCHAR(50),
+  resultat        VARCHAR(30),   -- envoye | ouvert | clique | repondu | ignore | refuse
+  created_at      TIMESTAMP DEFAULT NOW()
+);</code></pre>
+
+                <div class="db-schema">
+                    <h4>Tables complementaires</h4>
+                </div>
+
+                <div class="code-label">SQL Schema</div>
+                <pre><code>-- Marches publics
+CREATE TABLE marches_publics (
+  id              SERIAL PRIMARY KEY,
+  reference       VARCHAR(100),
+  titre           TEXT,
+  acheteur        VARCHAR(200),
+  type            VARCHAR(30),   -- mapa | ao_ouvert | ao_restreint | accord_cadre
+  montant_estime  DECIMAL,
+  date_limite     TIMESTAMP,
+  url_source      VARCHAR(500),
+  plateforme      VARCHAR(50),   -- boamp | france_marches | place | aws
+  mots_cles       JSONB,
+  score_pertinence INTEGER,
+  decision        VARCHAR(20),   -- a_qualifier | go | no_go | en_cours | soumis | gagne | perdu
+  notes           TEXT,
+  created_at      TIMESTAMP DEFAULT NOW()
+);
+
+-- Templates
+CREATE TABLE templates (
+  id              VARCHAR(50) PRIMARY KEY,
+  canal           VARCHAR(20),
+  segment         VARCHAR(50),
+  etape_sequence  INTEGER,
+  sujet           TEXT,
+  corps           TEXT,
+  variables       JSONB,
+  taux_reponse    FLOAT,
+  nb_envois       INTEGER DEFAULT 0,
+  nb_reponses     INTEGER DEFAULT 0,
+  actif           BOOLEAN DEFAULT true,
+  created_at      TIMESTAMP DEFAULT NOW()
+);
+
+-- Sequences multicanales
+CREATE TABLE sequences (
+  id              SERIAL PRIMARY KEY,
+  nom             VARCHAR(100),
+  segment         VARCHAR(50),
+  etapes          JSONB,
+  duree_jours     INTEGER,
+  actif           BOOLEAN DEFAULT true
+);
+
+-- Metriques quotidiennes
+CREATE TABLE metriques_daily (
+  id              SERIAL PRIMARY KEY,
+  date            DATE,
+  nouveaux_leads  INTEGER,
+  emails_envoyes  INTEGER,
+  emails_ouverts  INTEGER,
+  emails_repondus INTEGER,
+  linkedin_envoyes INTEGER,
+  linkedin_acceptes INTEGER,
+  linkedin_repondus INTEGER,
+  rdv_pris        INTEGER,
+  propositions    INTEGER,
+  deals_gagnes    INTEGER,
+  revenue_gagne   DECIMAL,
+  created_at      TIMESTAMP DEFAULT NOW()
+);</code></pre>
+            </section>
+
+            <!-- AGENT 1 -->
+            <section id="agent-1">
+                <div class="agent-card agent-1">
+                    <div class="agent-header">
+                        <div class="agent-badge">1</div>
+                        <div class="agent-title">
+                            <div class="agent-number">Agent 1</div>
+                            <h3 style="margin: 0.25rem 0 0 0;">VEILLEUR</h3>
+                        </div>
+                    </div>
+                    <p><strong>Mission :</strong> Detecter en continu les opportunites de prospection : nouveaux leads, signaux d'achat, marches publics, offres d'emploi revelant un besoin.</p>
+                </div>
+
+                <h3>Ce qu'il ne fait PAS</h3>
+                <ul style="color: var(--text-secondary); margin-left: 2rem;">
+                    <li>Il n'enrichit pas les donnees (c'est l'ENRICHISSEUR)</li>
+                    <li>Il ne contacte personne (c'est le REDACTEUR)</li>
+                    <li>Il ne juge pas la qualite du lead (c'est le SCOREUR)</li>
+                </ul>
+
+                <h3>Sous-agents</h3>
+
+                <details>
+                    <summary>1a. Veilleur LinkedIn</summary>
+                    <div>
+                        <h4 style="margin-top: 0;">Ce qu'il fait</h4>
+                        <ul style="color: var(--text-secondary); margin-left: 2rem;">
+                            <li>Scrape les posts LinkedIn contenant des mots-cles cibles</li>
+                            <li>Detecte les changements de poste (nouveau CMO, nouveau CTO = nouveau decideur)</li>
+                            <li>Detecte les annonces de recrutement dans les profils d'entreprises</li>
+                            <li>Detecte les posts d'entreprises qui parlent de "refonte", "digitalisation", "nouveau site", "transformation"</li>
+                        </ul>
+
+                        <h4>Mots-cles monitores</h4>
+                        <p style="color: var(--text-secondary);">refonte site, nouveau site, cherche agence web, transformation digitale, e-commerce, shopify, accessibilite, RGAA, application mobile, flutter, react</p>
+
+                        <h4>Ce qu'il produit</h4>
+                        <div class="code-label">JSON Output</div>
+                        <pre><code>{
+  "type": "signal_linkedin",
+  "date_detection": "2026-03-18T09:15:00",
+  "signal": "changement_poste",
+  "detail": "Sophie Martin nommee CMO chez TechCorp",
+  "prospect": {
+    "prenom": "Sophie",
+    "nom": "Martin",
+    "poste": "Chief Marketing Officer",
+    "linkedin_url": "https://linkedin.com/in/sophie-martin",
+    "entreprise": "TechCorp",
+    "localisation": "Paris"
+  },
+  "priorite": "haute",
+  "raison": "Nouveau CMO = nouveaux projets digitaux dans les 3-6 mois"
+}</code></pre>
+
+                        <p><strong>Frequence :</strong> Toutes les 6h (4x/jour) | <strong>Volume :</strong> 10-30 signaux/jour</p>
+                    </div>
+                </details>
+
+                <details>
+                    <summary>1b. Veilleur Marches Publics</summary>
+                    <div>
+                        <h4 style="margin-top: 0;">Ce qu'il fait</h4>
+                        <ul style="color: var(--text-secondary); margin-left: 2rem;">
+                            <li>Interroge l'API BOAMP et scrape France Marches quotidiennement</li>
+                            <li>Filtre par mots-cles IT/numerique + geographie (priorite La Reunion, puis France)</li>
+                            <li>Extrait les informations cles de chaque AO detecte</li>
+                            <li>Calcule un score de pertinence initial</li>
+                        </ul>
+
+                        <h4>Regles de scoring</h4>
+                        <pre><code>+30 si contient "site web" OU "application" OU "portail"
++20 si contient "RGAA" OU "accessibilite"
++20 si La Reunion ou DOM-TOM
++15 si MAPA (< 90K)
++10 si contient "maintenance" OU "hebergement"
+-20 si contient "travaux" OU "fournitures" OU "batiment"
+-30 si montant > 500K (hors scope Axiom)</code></pre>
+
+                        <h4>Ce qu'il produit</h4>
+                        <div class="code-label">JSON Output</div>
+                        <pre><code>{
+  "type": "marche_public",
+  "date_detection": "2026-03-18T07:00:00",
+  "reference": "BOAMP-2026-123456",
+  "titre": "Refonte du site internet de la commune de Saint-Denis",
+  "acheteur": "Mairie de Saint-Denis",
+  "type_marche": "mapa",
+  "montant_estime": 35000,
+  "date_limite": "2026-04-15",
+  "url": "https://boamp.fr/...",
+  "mots_cles_detectes": ["site web", "RGAA", "collectivite"],
+  "score_pertinence": 85,
+  "localisation": "La Reunion"
+}</code></pre>
+
+                        <p><strong>Frequence :</strong> 2x/jour | <strong>Volume :</strong> 2-10 marches pertinents/semaine</p>
+                    </div>
+                </details>
+
+                <details>
+                    <summary>1c. Veilleur Web (Sites & Tech)</summary>
+                    <div>
+                        <h4 style="margin-top: 0;">Ce qu'il fait</h4>
+                        <ul style="color: var(--text-secondary); margin-left: 2rem;">
+                            <li>Prend une liste d'entreprises cibles et scanne leur site avec Lighthouse</li>
+                            <li>Detecte la stack technique via headers HTTP, meta tags, ou BuiltWith</li>
+                            <li>Identifie les sites lents (>3s), non accessibles, en techno obsolete</li>
+                            <li>Genere un lead avec le signal technique associe</li>
+                        </ul>
+
+                        <h4>Seuils de detection</h4>
+                        <pre><code>Site lent : temps_chargement > 3.0s
+Score Lighthouse faible : performance < 50 OU accessibility < 70
+Tech obsolete : WordPress < 5.0, jQuery sans framework moderne, PHP ancien
+Non RGAA : accessibility score < 60</code></pre>
+
+                        <h4>Ce qu'il produit</h4>
+                        <div class="code-label">JSON Output</div>
+                        <pre><code>{
+  "type": "signal_web",
+  "date_detection": "2026-03-18T10:30:00",
+  "signal": "site_lent",
+  "site_web": "https://www.entreprise-exemple.fr",
+  "entreprise": "Entreprise Exemple",
+  "lighthouse": {
+    "performance": 38,
+    "accessibility": 52,
+    "seo": 71,
+    "best_practices": 67
+  },
+  "temps_chargement": 5.2,
+  "stack_detectee": {"cms": "wordpress", "version": "5.3", "theme": "flavor", "plugins": 23},
+  "problemes": ["site_lent", "accessibilite_faible", "wordpress_ancien", "trop_de_plugins"],
+  "priorite": "haute"
+}</code></pre>
+
+                        <p><strong>Frequence :</strong> 1x/jour (nuit) | <strong>Volume :</strong> 5-20 leads techniques/jour</p>
+                    </div>
+                </details>
+
+                <details>
+                    <summary>1d. Veilleur Job Boards</summary>
+                    <div>
+                        <h4 style="margin-top: 0;">Ce qu'il fait</h4>
+                        <ul style="color: var(--text-secondary); margin-left: 2rem;">
+                            <li>Scrape les offres d'emploi sur LinkedIn Jobs, Indeed, Welcome to the Jungle</li>
+                            <li>Filtre les offres qui revelent un besoin web</li>
+                            <li>Logique : si une entreprise recrute un dev web, c'est qu'elle a un besoin</li>
+                            <li>Extrait l'entreprise, le poste, la localisation</li>
+                        </ul>
+
+                        <h4>Mots-cles monitores</h4>
+                        <p style="color: var(--text-secondary);">developpeur web, developpeur react, developpeur frontend, developpeur fullstack, chef de projet digital, webmaster, integrateur web, developpeur shopify, developpeur mobile</p>
+
+                        <h4>Ce qu'il produit</h4>
+                        <div class="code-label">JSON Output</div>
+                        <pre><code>{
+  "type": "signal_jobboard",
+  "date_detection": "2026-03-18T08:00:00",
+  "signal": "recrutement_dev_web",
+  "offre_titre": "Developpeur React Senior",
+  "entreprise": "MediTech Solutions",
+  "localisation": "Lyon",
+  "plateforme": "linkedin_jobs",
+  "url_offre": "https://linkedin.com/jobs/...",
+  "analyse": "L'entreprise cherche un dev React senior en CDI. Cout estime : 55-65K/an + 6 mois de recrutement. Alternative : Axiom livre le projet en 4-6 semaines pour 15-30K.",
+  "priorite": "moyenne"
+}</code></pre>
+
+                        <p><strong>Frequence :</strong> 1x/jour | <strong>Volume :</strong> 5-15 signaux/jour</p>
+                    </div>
+                </details>
+
+                <h3>Synthese Agent 1</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Sous-agent</th>
+                            <th>Input</th>
+                            <th>Output</th>
+                            <th>Frequence</th>
+                            <th>Volume</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>1a LinkedIn</strong></td>
+                            <td>Mots-cles, filtres</td>
+                            <td>Signal LinkedIn + prospect brut</td>
+                            <td>4x/jour</td>
+                            <td>10-30/jour</td>
+                        </tr>
+                        <tr>
+                            <td><strong>1b Marches</strong></td>
+                            <td>API BOAMP, scraping</td>
+                            <td>Fiche marche + score pertinence</td>
+                            <td>2x/jour</td>
+                            <td>2-10/semaine</td>
+                        </tr>
+                        <tr>
+                            <td><strong>1c Web</strong></td>
+                            <td>Liste URLs, Lighthouse</td>
+                            <td>Signal technique + audit rapide</td>
+                            <td>1x/jour</td>
+                            <td>5-20/jour</td>
+                        </tr>
+                        <tr>
+                            <td><strong>1d Job Boards</strong></td>
+                            <td>Mots-cles, scraping</td>
+                            <td>Signal recrutement + entreprise</td>
+                            <td>1x/jour</td>
+                            <td>5-15/jour</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <div class="agent-card agent-1" style="margin-top: 2rem;">
+                    <strong>Total output :</strong> 20-65 leads bruts/jour → envoyes a l'ENRICHISSEUR
+                </div>
+            </section>
+
+            <!-- AGENT 2 -->
+            <section id="agent-2">
+                <div class="agent-card agent-2">
+                    <div class="agent-header">
+                        <div class="agent-badge">2</div>
+                        <div class="agent-title">
+                            <div class="agent-number">Agent 2</div>
+                            <h3 style="margin: 0.25rem 0 0 0;">ENRICHISSEUR</h3>
+                        </div>
+                    </div>
+                    <p><strong>Mission :</strong> Prendre chaque lead brut du Veilleur et le transformer en fiche prospect complete avec toutes les donnees necessaires pour scorer et contacter.</p>
+                </div>
+
+                <h3>Ce qu'il ne fait PAS</h3>
+                <ul style="color: var(--text-secondary); margin-left: 2rem;">
+                    <li>Il ne decide pas de contacter ou non (c'est le SCOREUR)</li>
+                    <li>Il ne redige aucun message (c'est le REDACTEUR)</li>
+                    <li>Il ne detecte pas les leads (c'est le VEILLEUR)</li>
+                </ul>
+
+                <h3>Processus detaille</h3>
+                <pre><code>ETAPE 1 : Identifier le decideur
+  - Si le lead a deja un contact (LinkedIn signal) → garder
+  - Sinon → chercher le decideur dans l'entreprise :
+    - Segment PME metro : chercher CMO, CTO, DG
+    - Segment e-commerce : chercher Fondateur, Head of Growth
+    - Segment collectivite : chercher DGS, DSI
+    - Segment startup : chercher Founder, CTO
+
+ETAPE 2 : Trouver les coordonnees
+  - Email : Hunter.io API (ou pattern email entreprise + verification)
+  - Telephone : si disponible dans les sources
+  - LinkedIn : URL profil complet
+
+ETAPE 3 : Enrichir les donnees entreprise
+  - SIRET/SIREN : via API INSEE (Sirene) ou Societe.com scraping
+  - CA et effectif : via API INSEE ou Pappers
+  - Secteur d'activite : depuis code APE
+  - Site web : depuis registre ou Google
+
+ETAPE 4 : Enrichir les donnees techniques
+  - Stack tech : Wappalyzer/BuiltWith (si pas deja fait par le Veilleur Web)
+  - Lighthouse score : si pas deja fait
+  - Presence reseaux sociaux
+
+ETAPE 5 : Compiler les signaux
+  - Agreger tous les signaux du VEILLEUR pour ce prospect
+  - Ajouter des signaux complementaires :
+    - Le prospect a-t-il visite le site Axiom ? (Warmly.ai)
+    - Le prospect engage-t-il sur LinkedIn ? (likes, comments recents)
+    - L'entreprise a-t-elle leve des fonds recemment ?
+    - L'entreprise a-t-elle publie des offres d'emploi tech ?
+
+ETAPE 6 : Ecrire dans la BDD
+  - Creer ou mettre a jour la fiche prospect dans PostgreSQL
+  - Statut → "enrichi"
+  - Passer au SCOREUR</code></pre>
+
+                <h3>Ressources necessaires</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Ressource</th>
+                            <th>Usage</th>
+                            <th>Cout</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>Hunter.io API</strong></td>
+                            <td>Trouver emails pro</td>
+                            <td>49 EUR/mois (2000 recherches)</td>
+                        </tr>
+                        <tr>
+                            <td><strong>API INSEE Sirene</strong></td>
+                            <td>SIRET, effectif, secteur</td>
+                            <td>Gratuit</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Pappers API</strong></td>
+                            <td>CA, dirigeants, bilans</td>
+                            <td>Gratuit (limite) ou 29 EUR/mois</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Wappalyzer</strong></td>
+                            <td>Stack technique site</td>
+                            <td>Gratuit (npm package)</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Lighthouse CLI</strong></td>
+                            <td>Performance site</td>
+                            <td>Gratuit (npm package)</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Warmly.ai API</strong></td>
+                            <td>Visiteurs du site Axiom</td>
+                            <td>Gratuit (tier basique)</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Claude API</strong></td>
+                            <td>Analyser et resumer les donnees</td>
+                            <td>~0.01 EUR/prospect</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <h3>Ce qu'il produit</h3>
+                <p>La fiche prospect enrichie (mise a jour dans la BDD) :</p>
+
+                <div class="code-label">JSON Output</div>
+                <pre><code>{
+  "id": 1234,
+  "statut": "enrichi",
+
+  "prenom": "Sophie",
+  "nom": "Martin",
+  "email": "s.martin@techcorp.fr",
+  "telephone": "+33 6 12 34 56 78",
+  "linkedin_url": "https://linkedin.com/in/sophie-martin",
+  "poste": "Chief Marketing Officer",
+
+  "entreprise": "TechCorp",
+  "siret": "123 456 789 00012",
+  "site_web": "https://www.techcorp.fr",
+  "secteur": "SaaS B2B",
+  "taille": "50-200",
+  "ca_estime": "5-10M EUR",
+  "localisation": "Paris",
+
+  "stack_tech": {
+    "cms": null,
+    "framework": "angular",
+    "version": "12",
+    "hosting": "aws",
+    "analytics": "google_analytics"
+  },
+  "lighthouse_score": 42,
+  "rgaa_conforme": false,
+  "temps_chargement": 4.8,
+
+  "signaux": [
+    {"type": "changement_poste", "detail": "Nommee CMO il y a 3 semaines", "date": "2026-02-25"},
+    {"type": "site_lent", "detail": "Lighthouse 42/100, 4.8s chargement", "date": "2026-03-18"},
+    {"type": "recrutement", "detail": "Offre dev frontend sur WTTJ", "date": "2026-03-15"}
+  ],
+  "signal_principal": "Nouveau CMO + site lent + recrutement dev = besoin refonte probable",
+
+  "segment": "pme_metro",
+  "source": "veille_linkedin",
+  "date_signal": "2026-03-18T09:15:00"
+}</code></pre>
+
+                <h3>Performance</h3>
+                <ul style="color: var(--text-secondary); margin-left: 2rem;">
+                    <li><strong>Par prospect :</strong> 3-10 secondes (APIs paralleles)</li>
+                    <li><strong>Volume quotidien :</strong> 20-65 prospects enrichis/jour</li>
+                    <li><strong>Cout API :</strong> ~0.05-0.15 EUR par prospect</li>
+                </ul>
+            </section>
+
+            <!-- AGENT 3 -->
+            <section id="agent-3">
+                <div class="agent-card agent-3">
+                    <div class="agent-header">
+                        <div class="agent-badge">3</div>
+                        <div class="agent-title">
+                            <div class="agent-number">Agent 3</div>
+                            <h3 style="margin: 0.25rem 0 0 0;">SCOREUR</h3>
+                        </div>
+                    </div>
+                    <p><strong>Mission :</strong> Attribuer un score numerique (0-100) a chaque prospect enrichi, le categoriser (HOT / WARM / COLD), et decider du traitement.</p>
+                </div>
+
+                <h3>Grille de scoring detaillee</h3>
+                <pre><code>SCORE TOTAL = ICP_FIT + SIGNAUX + ENGAGEMENT + TIMING + BUDGET
+(max 100 points)
+
+═══════════════════════════════════════════════════════
+ICP_FIT (max 25 points)
+═══════════════════════════════════════════════════════
+  Segment prioritaire (PME metro, e-commerce Shopify)    +25
+  Segment moyen (collectivite, startup)                  +20
+  Segment bas (agence WL, autre)                         +10
+  Hors ICP                                                +0
+  Taille entreprise 50-500 salaries                      +5 (bonus)
+  Decideur C-level (CEO, CMO, CTO, DG)                   +5 (bonus)
+  Decideur mid-level (Head of, Manager)                  +2 (bonus)
+
+═══════════════════════════════════════════════════════
+SIGNAUX (max 30 points)
+═══════════════════════════════════════════════════════
+  Levee de fonds recente                                 +15
+  Changement de poste decideur                           +12
+  Recrutement dev/tech en cours                          +10
+  Site lent (>3s) ou Lighthouse < 50                     +10
+  Non conforme RGAA (si collectivite)                    +15
+  Publication AO/MAPA pertinent                          +15
+  Tech obsolete detectee                                  +8
+  Post LinkedIn parlant de refonte/digital                +8
+  Offre emploi "dev web" / "webmaster"                   +10
+  Aucun signal                                            +0
+
+═══════════════════════════════════════════════════════
+ENGAGEMENT (max 20 points)
+═══════════════════════════════════════════════════════
+  A visite le site axiom-marketing.io                    +15
+  A engage avec un post LinkedIn d'Axiom                 +10
+  A telecharge un lead magnet / audit                    +20
+  A rempli le formulaire de contact                      +20
+  Connexion LinkedIn acceptee                             +5
+  A ouvert un email precedent                             +5
+  Aucun engagement                                        +0
+
+═══════════════════════════════════════════════════════
+TIMING (max 15 points)
+═══════════════════════════════════════════════════════
+  Signal date < 48h                                      +15
+  Signal date < 1 semaine                                +10
+  Signal date < 1 mois                                    +5
+  Signal date > 1 mois                                    +0
+
+═══════════════════════════════════════════════════════
+BUDGET ESTIME (max 10 points)
+═══════════════════════════════════════════════════════
+  Budget probable > 30K EUR                              +10
+  Budget probable 10-30K EUR                              +7
+  Budget probable 5-10K EUR                               +4
+  Budget probable < 5K EUR                                +1</code></pre>
+
+                <h3>Categories et decisions</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Score</th>
+                            <th>Categorie</th>
+                            <th>Decision</th>
+                            <th>Delai</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>75-100</strong></td>
+                            <td><span class="badge badge-hot">HOT</span></td>
+                            <td>Contact personnalise immediat. Jonathan valide le message avant envoi. Priorite maximale.</td>
+                            <td>< 24h</td>
+                        </tr>
+                        <tr>
+                            <td><strong>50-74</strong></td>
+                            <td><span class="badge badge-warm">WARM</span></td>
+                            <td>Sequence multicanale automatique. Pas de validation humaine. Sequence standard adaptee au segment.</td>
+                            <td>< 48h</td>
+                        </tr>
+                        <tr>
+                            <td><strong>25-49</strong></td>
+                            <td><span class="badge badge-cold">COLD</span></td>
+                            <td>Nurturing long terme. Ajout a la newsletter. Engagement LinkedIn passif.</td>
+                            <td>1 semaine</td>
+                        </tr>
+                        <tr>
+                            <td><strong>0-24</strong></td>
+                            <td>Disqualifie</td>
+                            <td>Archive. Pas d'action. Peut etre re-score si nouveau signal.</td>
+                            <td>Jamais</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <h3>Ce qu'il produit</h3>
+                <div class="code-label">JSON Output</div>
+                <pre><code>{
+  "prospect_id": 1234,
+  "score": 82,
+  "categorie": "HOT",
+  "detail_score": {
+    "icp_fit": 25,
+    "signaux": 27,
+    "engagement": 15,
+    "timing": 10,
+    "budget": 5
+  },
+  "decision": "contact_immediat",
+  "canal_recommande": "linkedin_puis_email",
+  "segment": "pme_metro",
+  "sequence_recommandee": "seq_pme_metro_hot",
+  "raison": "Nouveau CMO + site lent Lighthouse 42 + recrutement dev. Signal frais (<48h). PME 50-200 salaries Paris. Visite recente site Axiom.",
+  "action_humaine_requise": true,
+  "assigne_a": "jonathan"
+}</code></pre>
+
+                <h3>Performance</h3>
+                <ul style="color: var(--text-secondary); margin-left: 2rem;">
+                    <li><strong>Par prospect :</strong> < 1 seconde (calcul deterministe)</li>
+                    <li><strong>Cout :</strong> Aucun (calcul local, pas d'API)</li>
+                </ul>
+            </section>
+
+            <!-- AGENT 4 -->
+            <section id="agent-4">
+                <div class="agent-card agent-4">
+                    <div class="agent-header">
+                        <div class="agent-badge">4</div>
+                        <div class="agent-title">
+                            <div class="agent-number">Agent 4</div>
+                            <h3 style="margin: 0.25rem 0 0 0;">REDACTEUR</h3>
+                        </div>
+                    </div>
+                    <p><strong>Mission :</strong> Ecrire le premier message de contact (et les relances) personnalise pour chaque prospect, adapte au canal (email / LinkedIn), au segment, au score, et au signal detecte.</p>
+                </div>
+
+                <h3>Ce qu'il ne fait PAS</h3>
+                <ul style="color: var(--text-secondary); margin-left: 2rem;">
+                    <li>Il n'envoie pas le message (c'est le SUIVEUR)</li>
+                    <li>Il ne decide pas quand envoyer (c'est le SUIVEUR)</li>
+                    <li>Il ne choisit pas qui contacter (c'est le SCOREUR)</li>
+                </ul>
+
+                <h3>Processus detaille</h3>
+                <pre><code>ETAPE 1 : Recevoir le prospect score
+  - Categorie (HOT / WARM / COLD)
+  - Segment (pme_metro, ecommerce_shopify, collectivite, startup, agence_wl)
+  - Canal recommande (linkedin, email, multicanal)
+  - Sequence recommandee
+  - Signaux et donnees enrichies
+
+ETAPE 2 : Selectionner le template de base
+  - Choisir dans la table "templates" en fonction de :
+    - segment + canal + etape_sequence
+  - Exemple : segment="pme_metro", canal="email", etape=1
+    → template "challenger_sale_pme_metro_v3"
+
+ETAPE 3 : Personnaliser avec Claude API
+  - Prompt systeme :
+    "Tu es le redacteur commercial d'Axiom Marketing,
+     studio d'ingenierie web IA-augmente.
+     Tu ecris des messages de prospection courts (80-150 mots),
+     directs, sans flatterie excessive.
+     Framework : Challenger Sale (teach + tailor + question).
+     Ton : professionnel mais decontracte, pas corporate.
+     Tu utilises le tutoiement pour les startups,
+     le vouvoiement pour les PME et collectivites."
+
+  - Prompt utilisateur :
+    "Ecris un email de premier contact pour ce prospect :
+     [donnees du prospect]
+     Personalise le template avec les donnees du prospect.
+     Le message doit mentionner le signal specifique.
+     Termine par une question ouverte + CTA Calendly."
+
+ETAPE 4 : Validation
+  - Si HOT → marquer "en_attente_validation", notifier Jonathan
+  - Si WARM → marquer "pret_a_envoyer", passer au SUIVEUR
+  - Si COLD → pas de message redige, passer directement au NURTUREUR
+
+ETAPE 5 : Stocker le draft
+  - Ecrire dans la table "interactions" avec type="draft_email" ou "draft_linkedin"
+  - Lier au prospect_id et au template_id</code></pre>
+
+                <h3>Templates par segment x canal x etape</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Segment</th>
+                            <th>Canal</th>
+                            <th>Etape 1 (1er contact)</th>
+                            <th>Etape 2 (relance)</th>
+                            <th>Etape 3 (break-up)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>pme_metro</strong></td>
+                            <td>Email</td>
+                            <td>challenger_v1</td>
+                            <td>cas_client_v1</td>
+                            <td>breakup_v1</td>
+                        </tr>
+                        <tr>
+                            <td><strong>pme_metro</strong></td>
+                            <td>LinkedIn</td>
+                            <td>li_signal_v1</td>
+                            <td>li_cas_v1</td>
+                            <td>li_breakup_v1</td>
+                        </tr>
+                        <tr>
+                            <td><strong>ecommerce_shopify</strong></td>
+                            <td>Email</td>
+                            <td>tracking_roi_v1</td>
+                            <td>tracking_cas_v1</td>
+                            <td>breakup_v1</td>
+                        </tr>
+                        <tr>
+                            <td><strong>ecommerce_shopify</strong></td>
+                            <td>LinkedIn</td>
+                            <td>li_tracking_v1</td>
+                            <td>li_tracking_v2</td>
+                            <td>li_breakup_v1</td>
+                        </tr>
+                        <tr>
+                            <td><strong>collectivite</strong></td>
+                            <td>Email</td>
+                            <td>rgaa_alerte_v1</td>
+                            <td>rgaa_cas_v1</td>
+                            <td>breakup_formel_v1</td>
+                        </tr>
+                        <tr>
+                            <td><strong>collectivite</strong></td>
+                            <td>LinkedIn</td>
+                            <td>li_rgaa_v1</td>
+                            <td>li_rgaa_cas_v1</td>
+                            <td>li_breakup_v1</td>
+                        </tr>
+                        <tr>
+                            <td><strong>startup</strong></td>
+                            <td>Email</td>
+                            <td>speed_v1</td>
+                            <td>cas_mvp_v1</td>
+                            <td>breakup_v1</td>
+                        </tr>
+                        <tr>
+                            <td><strong>startup</strong></td>
+                            <td>LinkedIn</td>
+                            <td>li_speed_v1</td>
+                            <td>li_mvp_v1</td>
+                            <td>li_breakup_v1</td>
+                        </tr>
+                        <tr>
+                            <td><strong>agence_wl</strong></td>
+                            <td>Email</td>
+                            <td>whitelabel_v1</td>
+                            <td>wl_cas_v1</td>
+                            <td>breakup_v1</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <p style="text-align: center; margin: 1.5rem 0; color: var(--text-secondary);"><strong>= 30 templates a creer et maintenir</strong></p>
+
+                <h3>Ce qu'il produit</h3>
+                <div class="code-label">JSON Output</div>
+                <pre><code>{
+  "prospect_id": 1234,
+  "type": "draft_email",
+  "canal": "email",
+  "template_id": "challenger_sale_pme_metro_v3",
+  "sujet": "TechCorp : 4.8s de chargement = combien de clients perdus ?",
+  "corps": "Bonjour Sophie,\n\nVotre site TechCorp charge en 4.8 secondes...[message personnalise complet]",
+  "variables_utilisees": ["prenom", "entreprise", "temps_chargement", "lighthouse_score"],
+  "statut": "en_attente_validation",
+  "assigne_a": "jonathan",
+  "etape_sequence": 1
+}</code></pre>
+
+                <h3>Performance</h3>
+                <ul style="color: var(--text-secondary); margin-left: 2rem;">
+                    <li><strong>Par message :</strong> 2-5 secondes (appel Claude API)</li>
+                    <li><strong>Volume quotidien :</strong> 20-50 messages rediges</li>
+                    <li><strong>Cout :</strong> 0.50-1.50 EUR/jour en API Claude</li>
+                </ul>
+            </section>
+
+            <!-- AGENT 5 -->
+            <section id="agent-5">
+                <div class="agent-card agent-5">
+                    <div class="agent-header">
+                        <div class="agent-badge">5</div>
+                        <div class="agent-title">
+                            <div class="agent-number">Agent 5</div>
+                            <h3 style="margin: 0.25rem 0 0 0;">SUIVEUR</h3>
+                        </div>
+                    </div>
+                    <p><strong>Mission :</strong> Orchestrer l'envoi des messages au bon moment, sur le bon canal, gerer les relances automatiques, et detecter les reponses pour escalader a l'humain.</p>
+                </div>
+
+                <h3>Ce qu'il ne fait PAS</h3>
+                <ul style="color: var(--text-secondary); margin-left: 2rem;">
+                    <li>Il n'ecrit pas les messages (c'est le REDACTEUR)</li>
+                    <li>Il ne qualifie pas les prospects (c'est le SCOREUR)</li>
+                    <li>Il ne prend pas les appels decouverte (c'est Jonathan/Marty)</li>
+                </ul>
+
+                <h3>Boucle principale (tourne toutes les heures)</h3>
+                <pre><code>POUR chaque prospect en statut "en_sequence" :
+  1. Verifier si une reponse a ete recue
+     - Email : checker inbox (IMAP ou API Gmail)
+     - LinkedIn : checker notifications (scraping ou API)
+
+     SI reponse recue :
+       - Classifier la reponse avec Claude :
+         - "interesse" → statut = "rdv_a_planifier", notifier Jonathan
+         - "pas_maintenant" → reporter de 30 jours, statut = "nurture"
+         - "pas_interesse" → statut = "perdu", archiver
+         - "demande_info" → notifier Jonathan pour reponse manuelle
+       - STOP la sequence pour ce prospect
+
+  2. Verifier si c'est le moment d'envoyer la prochaine etape
+     - Regarder la sequence assignee (table "sequences")
+     - Calculer : jour_actuel = (maintenant - date_debut_sequence)
+     - Si jour_actuel == jour de la prochaine etape :
+
+       SI etape.action == "envoi" ou "connexion" ou "relance" :
+         - Recuperer le draft du REDACTEUR
+         - SI validation_requise ET pas_encore_valide → attendre
+         - SINON → ENVOYER :
+           - Email : via API Gmail / SMTP
+           - LinkedIn : via automation (API ou action programmee)
+         - Logger dans table "interactions"
+         - Incrementer nb_contacts du prospect
+         - Mettre a jour dernier_contact
+
+       SI etape.action == "engagement" :
+         - Liker 2-3 posts recents du prospect sur LinkedIn
+         - Commenter si pertinent (draft par Claude, court)
+         - Logger dans "interactions"
+
+  3. Si la sequence est terminee (toutes les etapes envoyees) :
+     - Si aucune reponse → statut = "nurture", passer au NURTUREUR
+     - Logger la fin de sequence
+
+POUR chaque prospect en statut "en_attente_validation" :
+  - Verifier si Jonathan a valide le message
+  - Si oui → envoyer et passer en "en_sequence"
+  - Si non depuis > 24h → envoyer notification de rappel</code></pre>
+
+                <h3>Regles de delivrabilite</h3>
+                <h4 style="margin-top: 1.5rem;">Email</h4>
+                <ul style="color: var(--text-secondary); margin-left: 2rem;">
+                    <li>Maximum 50 emails/jour (commencer a 20, augmenter progressivement)</li>
+                    <li>Delai entre chaque envoi : 30-120 secondes (randomise)</li>
+                    <li>Pas d'envoi le weekend</li>
+                    <li>Horaires : 8h-10h et 14h-16h (heure du prospect)</li>
+                    <li>Rotation de domaines d'envoi si volume > 30/jour</li>
+                </ul>
+
+                <h4>LinkedIn</h4>
+                <ul style="color: var(--text-secondary); margin-left: 2rem;">
+                    <li>Maximum 20 connexions/jour</li>
+                    <li>Maximum 50 messages/jour</li>
+                    <li>Delai entre actions : 30-60 secondes</li>
+                    <li>Escalade progressive sur 2 semaines</li>
+                </ul>
+
+                <h3>Ce qu'il produit</h3>
+                <h4>A chaque envoi</h4>
+                <div class="code-label">JSON Output</div>
+                <pre><code>{
+  "type": "email_envoye",
+  "prospect_id": 1234,
+  "canal": "email",
+  "template_id": "challenger_sale_pme_metro_v3",
+  "sujet": "TechCorp : 4.8s de chargement...",
+  "etape_sequence": 1,
+  "heure_envoi": "2026-03-19T09:14:32",
+  "statut": "envoye"
+}</code></pre>
+
+                <h4>A chaque reponse detectee</h4>
+                <div class="code-label">JSON Output</div>
+                <pre><code>{
+  "type": "reponse_recue",
+  "prospect_id": 1234,
+  "canal": "email",
+  "classification": "INTERESSE",
+  "contenu": "Bonjour, oui ca m'interesse. On peut en parler la semaine prochaine ?",
+  "action": "rdv_a_planifier",
+  "notifie_a": "jonathan",
+  "heure_detection": "2026-03-20T14:22:00"
+}</code></pre>
+
+                <h3>Notifications a Jonathan/Marty</h3>
+                <p style="color: var(--text-secondary);">L'agent envoie des notifications (Slack, email, ou SMS) dans ces cas :</p>
+                <ul style="color: var(--text-secondary); margin-left: 2rem;">
+                    <li>Prospect HOT a valider avant envoi</li>
+                    <li>Reponse "INTERESSE" recue → planifier RDV</li>
+                    <li>Reponse "DEMANDE_INFO" → repondre manuellement</li>
+                    <li>Prospect qui visite le site Axiom alors qu'il est en sequence active</li>
+                    <li>Rappel si validation en attente > 24h</li>
+                </ul>
+            </section>
+
+            <!-- AGENT 6 -->
+            <section id="agent-6">
+                <div class="agent-card agent-6">
+                    <div class="agent-header">
+                        <div class="agent-badge">6</div>
+                        <div class="agent-title">
+                            <div class="agent-number">Agent 6</div>
+                            <h3 style="margin: 0.25rem 0 0 0;">NURTUREUR</h3>
+                        </div>
+                    </div>
+                    <p><strong>Mission :</strong> Maintenir une relation avec les prospects WARM et COLD qui n'ont pas converti, jusqu'a ce qu'un nouveau signal ou engagement les fasse remonter en priorite.</p>
+                </div>
+
+                <h3>Ce qu'il ne fait PAS</h3>
+                <ul style="color: var(--text-secondary); margin-left: 2rem;">
+                    <li>Il ne fait pas de prospection active (pas de cold outreach)</li>
+                    <li>Il ne qualifie pas (c'est le SCOREUR qui re-score)</li>
+                    <li>Il ne close pas (c'est Jonathan)</li>
+                </ul>
+
+                <h3>Processus detaille</h3>
+                <pre><code>POUR chaque prospect en statut "nurture" :
+
+  1. ENGAGEMENT LINKEDIN PASSIF (hebdomadaire)
+     - Liker 1-2 posts recents du prospect
+     - Commenter si un post est pertinent (draft Claude, 1-2 phrases)
+     - Objectif : rester visible sans etre intrusif
+
+  2. EMAIL MENSUEL DE VALEUR (pas de vente)
+     - Envoyer 1 email/mois avec du contenu utile :
+       - Nouveau blog post Axiom pertinent pour le secteur du prospect
+       - Cas d'etude recent (si similaire au secteur)
+       - Insight sectoriel (tendance, stat, changement reglementaire)
+       - Invitation webinaire
+     - Personnalise par segment :
+       - pme_metro → contenu performance web, ROI digital
+       - ecommerce_shopify → contenu tracking, conversions, Shopify
+       - collectivite → contenu RGAA, accessibilite, conformite
+       - startup → contenu rapidite, MVP, stack moderne
+
+  3. RE-SCORING MENSUEL
+     - Tous les 30 jours, re-interroger les sources de signaux :
+       - Nouveau post LinkedIn du prospect ?
+       - Visite recente du site Axiom ?
+       - Nouveau signal (recrutement, levee, AO) ?
+       - Email nurture ouvert ou clique ?
+     - Si nouveau signal ou engagement → re-scorer via AGENT 3
+     - Si score remonte > 50 → reclassifier en WARM et relancer sequence
+     - Si score remonte > 75 → reclassifier en HOT et notifier Jonathan
+
+  4. NETTOYAGE (trimestriel)
+     - Si prospect en nurture depuis > 6 mois sans aucun engagement :
+       - Marquer "archive"
+       - Plus aucun email envoye
+       - Garde en BDD pour reference</code></pre>
+
+                <h3>Ce qu'il produit</h3>
+
+                <h4>Email nurture personnalise</h4>
+                <div class="code-label">JSON Output</div>
+                <pre><code>{
+  "type": "email_nurture",
+  "prospect_id": 1234,
+  "sujet": "Lighthouse 2026 : les nouveaux criteres de Google",
+  "corps": "Bonjour Sophie,\n\nGoogle vient de mettre a jour ses criteres Lighthouse...[contenu educatif]...\n\nSi vous voulez qu'on regarde votre score ensemble, je reste disponible.\n\nBonne semaine,\nJonathan",
+  "contenu_partage": "https://axiom-marketing.io/blog/lighthouse-2026",
+  "etape_nurture": 3
+}</code></pre>
+
+                <h4>Alerte re-scoring</h4>
+                <div class="code-label">JSON Output</div>
+                <pre><code>{
+  "type": "alerte_re_scoring",
+  "prospect_id": 1234,
+  "ancien_score": 35,
+  "nouveau_score": 72,
+  "ancienne_categorie": "COLD",
+  "nouvelle_categorie": "WARM",
+  "raison": "A ouvert les 3 derniers emails nurture + a visite la page /services/site-vitrine + nouveau signal : offre emploi dev React",
+  "action": "relancer_sequence_warm"
+}</code></pre>
+
+                <h3>Ressources necessaires</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Ressource</th>
+                            <th>Usage</th>
+                            <th>Cout</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>Claude API</strong></td>
+                            <td>Personnaliser emails nurture et commentaires LinkedIn</td>
+                            <td>~0.01 EUR/prospect/mois</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Blog Axiom</strong></td>
+                            <td>Contenu a partager</td>
+                            <td>0 (deja produit)</td>
+                        </tr>
+                        <tr>
+                            <td><strong>LinkedIn</strong></td>
+                            <td>Engagement passif</td>
+                            <td>0</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Scheduler</strong></td>
+                            <td>Declencher actions mensuelles</td>
+                            <td>n8n (deja en place)</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </section>
+
+            <!-- AGENT 7 -->
+            <section id="agent-7">
+                <div class="agent-card agent-7">
+                    <div class="agent-header">
+                        <div class="agent-badge">7</div>
+                        <div class="agent-title">
+                            <div class="agent-number">Agent 7</div>
+                            <h3 style="margin: 0.25rem 0 0 0;">ANALYSTE</h3>
+                        </div>
+                    </div>
+                    <p><strong>Mission :</strong> Mesurer la performance de chaque etape du pipeline, identifier les goulots d'etranglement, et recommander des ajustements concrets.</p>
+                </div>
+
+                <h3>Ce qu'il ne fait PAS</h3>
+                <ul style="color: var(--text-secondary); margin-left: 2rem;">
+                    <li>Il ne modifie rien lui-meme (il recommande, l'humain decide)</li>
+                    <li>Il ne contacte aucun prospect</li>
+                    <li>Il ne cree pas de contenu</li>
+                </ul>
+
+                <h3>Cadence d'analyse</h3>
+
+                <h4>Quotidien (chaque soir a 22h)</h4>
+                <ol style="color: var(--text-secondary); margin-left: 2rem;">
+                    <li>Compter les metriques du jour :
+                        <ul style="margin-top: 0.5rem;">
+                            <li>Leads detectes par le VEILLEUR (par sous-agent)</li>
+                            <li>Prospects enrichis par l'ENRICHISSEUR</li>
+                            <li>Prospects scores par le SCOREUR (par categorie)</li>
+                            <li>Messages envoyes par le SUIVEUR (par canal)</li>
+                            <li>Emails ouverts, cliques, repondus</li>
+                            <li>LinkedIn acceptes, repondus</li>
+                            <li>RDV pris</li>
+                            <li>Propositions envoyees</li>
+                            <li>Deals gagnes et montants</li>
+                        </ul>
+                    </li>
+                    <li>Ecrire le snapshot dans "metriques_daily"</li>
+                </ol>
+
+                <h4>Hebdomadaire (chaque dimanche soir)</h4>
+                <ol style="color: var(--text-secondary); margin-left: 2rem;">
+                    <li>Calculer les taux de conversion par etape :
+                        <ul style="margin-top: 0.5rem;">
+                            <li>Lead → Enrichi : devrait etre ~90%+</li>
+                            <li>Enrichi → Contacte : selon scoring</li>
+                            <li>Contacte → Reponse : cible 10-20%</li>
+                            <li>Reponse → RDV : cible 40-50%</li>
+                            <li>RDV → Proposition : cible 50-70%</li>
+                            <li>Proposition → Gagne : cible 25-40%</li>
+                        </ul>
+                    </li>
+                    <li>Identifier les goulots :
+                        <ul style="margin-top: 0.5rem;">
+                            <li>Si taux reponse email < 5% → recommander changement templates</li>
+                            <li>Si taux reponse LinkedIn < 15% → recommander changement approche</li>
+                            <li>Si taux RDV→Proposition < 40% → revoir qualification</li>
+                            <li>Si aucun lead dans un segment → revoir veille</li>
+                        </ul>
+                    </li>
+                    <li>Comparer les templates : calculer taux_reponse = nb_reponses / nb_envois</li>
+                    <li>Analyser par segment : quel segment genere le plus de deals ? Meilleur CAC ?</li>
+                    <li>Generer le rapport hebdomadaire (via Claude)</li>
+                </ol>
+
+                <h4>Mensuel</h4>
+                <ol style="color: var(--text-secondary); margin-left: 2rem;">
+                    <li>Rapport complet avec :
+                        <ul style="margin-top: 0.5rem;">
+                            <li>Funnel complet (leads → clients)</li>
+                            <li>Revenue genere</li>
+                            <li>CAC par canal et par segment</li>
+                            <li>ROI du systeme de prospection</li>
+                            <li>Recommandations strategiques</li>
+                        </ul>
+                    </li>
+                    <li>Envoyer a Jonathan par email</li>
+                </ol>
+
+                <h3>Exemple de Rapport Hebdomadaire</h3>
+                <div style="background: var(--bg-elevated); border: 1px solid var(--border); border-radius: 0.75rem; padding: 1.5rem; margin: 1.5rem 0; font-size: 0.85rem; line-height: 1.6;">
+                    <div style="text-align: center; margin-bottom: 1.5rem; border-bottom: 1px solid var(--border); padding-bottom: 1rem;">
+                        <p style="margin: 0; font-weight: 700; font-size: 0.875rem;">RAPPORT PROSPECTION — SEMAINE 12 (2026)</p>
+                    </div>
+
+                    <div style="margin-bottom: 1rem;">
+                        <p style="margin: 0.25rem 0; color: var(--text);"><strong>PIPELINE GLOBAL</strong></p>
+                        <ul style="margin: 0.5rem 0 0 1rem; padding: 0; color: var(--text-secondary);">
+                            <li>Leads detectes : 142 (+12% vs S11)</li>
+                            <li>Prospects enrichis : 128 (90%)</li>
+                            <li>HOT : 8</li>
+                            <li>WARM : 47</li>
+                            <li>COLD : 73</li>
+                        </ul>
+                    </div>
+
+                    <div style="margin-bottom: 1rem;">
+                        <p style="margin: 0.25rem 0; color: var(--text);"><strong>OUTREACH</strong></p>
+                        <ul style="margin: 0.5rem 0 0 1rem; padding: 0; color: var(--text-secondary);">
+                            <li>Emails envoyes : 89</li>
+                            <li>Taux ouverture : 28% (cible: 25%) ✓</li>
+                            <li>Taux reponse : 11.2% (cible: 10%) ✓</li>
+                            <li>LinkedIn connexions : 62</li>
+                            <li>LinkedIn acceptees : 23 (37%)</li>
+                            <li>LinkedIn reponses : 8 (13%)</li>
+                        </ul>
+                    </div>
+
+                    <div style="margin-bottom: 1rem;">
+                        <p style="margin: 0.25rem 0; color: var(--text);"><strong>CONVERSION</strong></p>
+                        <ul style="margin: 0.5rem 0 0 1rem; padding: 0; color: var(--text-secondary);">
+                            <li>RDV pris : 4 (+1 vs S11)</li>
+                            <li>Propositions envoyees : 2</li>
+                            <li>Deals gagnes : 1 (18 000 EUR)</li>
+                        </ul>
+                    </div>
+
+                    <div style="margin-bottom: 1rem;">
+                        <p style="margin: 0.25rem 0; color: var(--text);"><strong>MEILLEURS TEMPLATES</strong></p>
+                        <ul style="margin: 0.5rem 0 0 1rem; padding: 0; color: var(--text-secondary);">
+                            <li>1. challenger_sale_pme_metro_v3 → 14.3% reponse (21 envois)</li>
+                            <li>2. tracking_roi_v1 → 12.1% reponse (33 envois)</li>
+                            <li>3. rgaa_alerte_v1 → 8.5% reponse (12 envois)</li>
+                        </ul>
+                    </div>
+
+                    <div style="margin-bottom: 1rem;">
+                        <p style="margin: 0.25rem 0; color: var(--text);"><strong>RECOMMANDATIONS</strong></p>
+                        <ul style="margin: 0.5rem 0 0 1rem; padding: 0; color: var(--text-secondary);">
+                            <li>1. Augmenter volume veille collectivites (ajouter mots-cles)</li>
+                            <li>2. Dupliquer template challenger_sale_pme_metro_v3 avec variantes A/B</li>
+                            <li>3. Desactiver template whitelabel_v1, reecrire</li>
+                            <li>4. Segment startup sous-performe : affiner ICP ou reduire effort</li>
+                            <li>5. CAC actuel : 187 EUR → cible atteinte (< 300 EUR) ✓</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <h3>Ressources necessaires</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Ressource</th>
+                            <th>Usage</th>
+                            <th>Cout</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>PostgreSQL</strong></td>
+                            <td>Requetes sur toutes les tables</td>
+                            <td>0 (deja en place)</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Claude API</strong></td>
+                            <td>Generer les rapports en langage naturel</td>
+                            <td>~0.05 EUR/rapport</td>
+                        </tr>
+                        <tr>
+                            <td><strong>n8n</strong></td>
+                            <td>Scheduler + aggregation</td>
+                            <td>Deja en place</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Canal de notification</strong></td>
+                            <td>Slack ou email pour envoyer les rapports</td>
+                            <td>0</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </section>
+
+            <!-- COÛTS TOTAUX -->
+            <section id="costs">
+                <h2>Cout Total du Systeme</h2>
+
+                <h3>Infrastructure</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Composant</th>
+                            <th>Cout mensuel</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>Serveur</strong> (AdonisJS + PostgreSQL + n8n)</td>
+                            <td>20-50 EUR (Scaleway DEV1-M)</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Claude API</strong> (redaction + classification)</td>
+                            <td>30-80 EUR/mois (selon volume)</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Hunter.io</strong> (emails)</td>
+                            <td>49 EUR/mois</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Warmly.ai</strong> (intent tracking)</td>
+                            <td>0 EUR (tier gratuit)</td>
+                        </tr>
+                        <tr>
+                            <td><strong>LinkedIn Sales Navigator</strong></td>
+                            <td>65 EUR/mois</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Waalaxy</strong> (automation LinkedIn)</td>
+                            <td>19 EUR/mois</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Domaine + SMTP</strong> (delivrabilite email)</td>
+                            <td>5-15 EUR/mois</td>
+                        </tr>
+                        <tr style="background: var(--bg-hover);">
+                            <td><strong>TOTAL MENSUEL</strong></td>
+                            <td><strong>~190-280 EUR/mois</strong></td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <div class="cost-grid" style="margin-top: 2rem;">
+                    <div class="cost-item">
+                        <div class="cost-label">Infrastructure & Serveur</div>
+                        <div class="cost-value" style="color: var(--cyan);">20-50 €</div>
+                    </div>
+                    <div class="cost-item">
+                        <div class="cost-label">Claude API</div>
+                        <div class="cost-value" style="color: var(--accent);">30-80 €</div>
+                    </div>
+                    <div class="cost-item">
+                        <div class="cost-label">Hunter.io</div>
+                        <div class="cost-value" style="color: var(--amber);">49 €</div>
+                    </div>
+                    <div class="cost-item">
+                        <div class="cost-label">LinkedIn & Waalaxy</div>
+                        <div class="cost-value" style="color: var(--green);">84 €</div>
+                    </div>
+                    <div class="cost-item">
+                        <div class="cost-label">Domaine & SMTP</div>
+                        <div class="cost-value" style="color: var(--violet);">5-15 €</div>
+                    </div>
+                    <div class="cost-item">
+                        <div class="cost-label">TOTAL ESTIMÉ</div>
+                        <div class="cost-value" style="color: var(--pink);">190-280 €</div>
+                    </div>
+                </div>
+
+                <h3>Temps de developpement estime</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Agent / Composant</th>
+                            <th>Complexite</th>
+                            <th>Temps dev estime</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>Agent 1 — Veilleur</strong></td>
+                            <td>Haute (4 sous-agents, scraping, APIs)</td>
+                            <td>3-5 jours</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Agent 2 — Enrichisseur</strong></td>
+                            <td>Moyenne (APIs, pipeline)</td>
+                            <td>2-3 jours</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Agent 3 — Scoreur</strong></td>
+                            <td>Faible (logique, pas d'IA)</td>
+                            <td>1 jour</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Agent 4 — Redacteur</strong></td>
+                            <td>Moyenne (Claude API, templates)</td>
+                            <td>2-3 jours</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Agent 5 — Suiveur</strong></td>
+                            <td>Haute (envoi, detection reponses, scheduler)</td>
+                            <td>3-5 jours</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Agent 6 — Nurtureur</strong></td>
+                            <td>Faible (cron + emails)</td>
+                            <td>1-2 jours</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Agent 7 — Analyste</strong></td>
+                            <td>Moyenne (requetes SQL, rapport Claude)</td>
+                            <td>2-3 jours</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Base de donnees + API</strong></td>
+                            <td>Moyenne</td>
+                            <td>2-3 jours</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Dashboard front (React)</strong></td>
+                            <td>Moyenne</td>
+                            <td>3-5 jours</td>
+                        </tr>
+                        <tr style="background: var(--bg-hover);">
+                            <td><strong>TOTAL</strong></td>
+                            <td><strong></strong></td>
+                            <td><strong>~20-30 jours</strong></td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <h3>ROI attendu</h3>
+                <pre><code>INVESTISSEMENT
+  Dev initial : 20-30 jours × TJM interne
+  Cout mensuel : ~250 EUR/mois (outils + infra)
+
+RESULTATS (apres 3 mois de rodage)
+  Leads/mois : 300-500
+  Contacts/mois : 150-250
+  RDV/mois : 8-15
+  Deals/mois : 2-5
+  Revenue/mois : 20-80K EUR
+
+PAYBACK : 1-2 mois apres mise en production</code></pre>
+            </section>
+
+            <!-- ORDRE DE CONSTRUCTION -->
+            <section id="timeline">
+                <h2>Ordre de Construction Recommande</h2>
+
+                <div class="timeline">
+                    <div class="timeline-item">
+                        <div></div>
+                        <div class="timeline-content">
+                            <h4 style="margin-top: 0;">SPRINT 1 — Semaine 1-2 : Fondations</h4>
+                            <ul style="margin: 0.75rem 0 0 0; color: var(--text-secondary);">
+                                <li>Base de donnees PostgreSQL (schema complet)</li>
+                                <li>Agent 3 — Scoreur (le plus simple, teste la logique)</li>
+                                <li>Agent 7 — Analyste (requetes SQL basiques)</li>
+                            </ul>
+                        </div>
+                        <div class="timeline-marker"></div>
+                    </div>
+
+                    <div class="timeline-item">
+                        <div class="timeline-content">
+                            <h4 style="margin-top: 0;">SPRINT 2 — Semaine 2-3 : Collecte</h4>
+                            <ul style="margin: 0.75rem 0 0 0; color: var(--text-secondary);">
+                                <li>Agent 1c — Veilleur Web (Lighthouse + Wappalyzer)</li>
+                                <li>Agent 1d — Veilleur Job Boards (scraping Indeed/WTTJ)</li>
+                                <li>Agent 2 — Enrichisseur (Hunter + INSEE + Pappers)</li>
+                            </ul>
+                        </div>
+                        <div class="timeline-marker"></div>
+                    </div>
+
+                    <div class="timeline-item">
+                        <div></div>
+                        <div class="timeline-content">
+                            <h4 style="margin-top: 0;">SPRINT 3 — Semaine 3-4 : Outreach</h4>
+                            <ul style="margin: 0.75rem 0 0 0; color: var(--text-secondary);">
+                                <li>Agent 4 — Redacteur (Claude API + 15 premiers templates)</li>
+                                <li>Agent 5 — Suiveur (envoi email + detection reponses)</li>
+                                <li>Dashboard React (vue pipeline + notifications)</li>
+                            </ul>
+                        </div>
+                        <div class="timeline-marker"></div>
+                    </div>
+
+                    <div class="timeline-item">
+                        <div class="timeline-content">
+                            <h4 style="margin-top: 0;">SPRINT 4 — Semaine 4-5 : LinkedIn + Marches</h4>
+                            <ul style="margin: 0.75rem 0 0 0; color: var(--text-secondary);">
+                                <li>Agent 1a — Veilleur LinkedIn (scraping + signaux)</li>
+                                <li>Agent 1b — Veilleur Marches Publics (BOAMP API)</li>
+                                <li>Agent 5 — Suiveur (ajout canal LinkedIn)</li>
+                                <li>Agent 6 — Nurtureur (emails mensuels + re-scoring)</li>
+                            </ul>
+                        </div>
+                        <div class="timeline-marker"></div>
+                    </div>
+
+                    <div class="timeline-item">
+                        <div></div>
+                        <div class="timeline-content">
+                            <h4 style="margin-top: 0;">SPRINT 5 — Semaine 5-6 : Optimisation</h4>
+                            <ul style="margin: 0.75rem 0 0 0; color: var(--text-secondary);">
+                                <li>A/B testing templates</li>
+                                <li>Affinage scoring (poids ajustes selon donnees reelles)</li>
+                                <li>Agent 7 — Analyste (rapports complets + recommandations)</li>
+                                <li>Integration Warmly.ai (intent tracking)</li>
+                            </ul>
+                        </div>
+                        <div class="timeline-marker"></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Footer -->
+            <section style="text-align: center; padding: 3rem 0; border-top: 1px solid var(--border); margin-top: 3rem;">
+                <p style="color: var(--text-muted); font-size: 0.875rem;">
+                    Specifications redigees le <strong>18 mars 2026</strong><br>
+                    Pret pour developpement en interne par l'equipe Axiom
+                </p>
+            </section>
+        </div>
+    </main>
+
+    <script>
+        // Smooth scroll et navigation active
+        document.querySelectorAll('.nav-link').forEach(link => {
+            link.addEventListener('click', (e) => {
+                e.preventDefault();
+                const target = document.querySelector(link.getAttribute('href'));
+                if (target) {
+                    document.getElementById('sidebar').classList.remove('active');
+                    target.scrollIntoView({ behavior: 'smooth' });
+
+                    document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+                    link.classList.add('active');
+                }
+            });
+        });
+
+        // Update active link on scroll
+        window.addEventListener('scroll', () => {
+            let current = '';
+            document.querySelectorAll('section').forEach(section => {
+                const sectionTop = section.offsetTop;
+                const sectionHeight = section.clientHeight;
+                if (scrollY >= sectionTop - 200) {
+                    current = section.getAttribute('id');
+                }
+            });
+
+            document.querySelectorAll('.nav-link').forEach(link => {
+                link.classList.remove('active');
+                if (link.getAttribute('href') === '#' + current) {
+                    link.classList.add('active');
+                }
+            });
+        });
+    </script>
+</body>
+</html>

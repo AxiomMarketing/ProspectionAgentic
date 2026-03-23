@@ -1,0 +1,2372 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prospection Axiom - Recherche Complète</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #0A0B0F;
+            --bg-surface: #111320;
+            --bg-elevated: #1A1B24;
+            --bg-hover: #22232E;
+            --text: #F1F5F9;
+            --text-secondary: #94A3B8;
+            --text-muted: #8494A7;
+            --accent: #3B82F6;
+            --accent-hover: #2563EB;
+            --cyan: #22D3EE;
+            --amber: #F59E0B;
+            --red: #EF4444;
+            --green: #10B981;
+            --border: rgba(255, 255, 255, 0.08);
+            --border-hover: rgba(255, 255, 255, 0.15);
+            --font: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: var(--font);
+            background-color: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        /* Noise Effect */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image:
+                url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' /%3E%3C/filter%3E%3Crect width='400' height='400' fill='%23000000' filter='url(%23noiseFilter)' opacity='0.02'/%3E%3C/svg%3E");
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        /* Header Hero */
+        .header {
+            position: relative;
+            padding: 80px 40px;
+            text-align: center;
+            border-bottom: 1px solid var(--border);
+            overflow: hidden;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 400px;
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.15) 0%, rgba(34, 211, 238, 0.1) 100%);
+            opacity: 0.6;
+            filter: blur(40px);
+        }
+
+        .header-content {
+            position: relative;
+            z-index: 1;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .header h1 {
+            font-size: 3.5rem;
+            font-weight: 800;
+            margin-bottom: 20px;
+            background: linear-gradient(135deg, #3B82F6 0%, #22D3EE 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .header-meta {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            flex-wrap: wrap;
+            margin-top: 30px;
+            padding-top: 30px;
+            border-top: 1px solid var(--border);
+        }
+
+        .meta-item {
+            text-align: center;
+        }
+
+        .meta-label {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 5px;
+        }
+
+        .meta-value {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--text);
+        }
+
+        /* Main Layout */
+        .container {
+            display: flex;
+            max-width: 1400px;
+            margin: 0 auto;
+            gap: 40px;
+            padding: 60px 40px;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            position: sticky;
+            top: 40px;
+            width: 280px;
+            height: fit-content;
+            flex-shrink: 0;
+        }
+
+        .toc {
+            background: var(--bg-surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 25px;
+            backdrop-filter: blur(10px);
+        }
+
+        .toc-title {
+            font-size: 0.9rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--cyan);
+            margin-bottom: 20px;
+        }
+
+        .toc-list {
+            list-style: none;
+        }
+
+        .toc-item {
+            margin-bottom: 12px;
+        }
+
+        .toc-link {
+            font-size: 0.95rem;
+            color: var(--text-secondary);
+            text-decoration: none;
+            padding: 8px 12px;
+            border-left: 2px solid transparent;
+            transition: all 0.3s ease;
+            display: block;
+        }
+
+        .toc-link:hover {
+            color: var(--cyan);
+            border-left-color: var(--cyan);
+            padding-left: 16px;
+        }
+
+        /* Main Content */
+        .main {
+            flex: 1;
+            min-width: 0;
+        }
+
+        section {
+            margin-bottom: 80px;
+            scroll-margin-top: 100px;
+        }
+
+        h2 {
+            font-size: 2.2rem;
+            font-weight: 700;
+            color: var(--text);
+            margin-bottom: 30px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid var(--border);
+        }
+
+        h3 {
+            font-size: 1.4rem;
+            font-weight: 600;
+            color: var(--accent);
+            margin-top: 35px;
+            margin-bottom: 20px;
+        }
+
+        h4 {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--text);
+            margin-top: 25px;
+            margin-bottom: 15px;
+        }
+
+        p {
+            margin-bottom: 15px;
+            color: var(--text-secondary);
+            line-height: 1.8;
+        }
+
+        a {
+            color: var(--cyan);
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+
+        a:hover {
+            color: var(--text);
+            text-decoration: underline;
+        }
+
+        /* Tables */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 30px;
+            background: var(--bg-surface);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        thead {
+            background: var(--bg-elevated);
+            border-bottom: 1px solid var(--border-hover);
+        }
+
+        th {
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+            color: var(--cyan);
+            font-size: 0.95rem;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+
+        td {
+            padding: 12px 15px;
+            border-bottom: 1px solid var(--border);
+            font-size: 0.95rem;
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        tbody tr:hover {
+            background: var(--bg-hover);
+        }
+
+        /* Code Blocks */
+        pre {
+            background: var(--bg-elevated);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 20px;
+            overflow-x: auto;
+            margin-bottom: 30px;
+            font-size: 0.9rem;
+        }
+
+        code {
+            font-family: 'Monaco', 'Courier New', monospace;
+            color: var(--cyan);
+            line-height: 1.6;
+        }
+
+        /* Cards */
+        .card {
+            background: var(--bg-surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 25px;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+        }
+
+        .card:hover {
+            border-color: var(--border-hover);
+            background: var(--bg-elevated);
+        }
+
+        /* Stats Cards */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, var(--bg-surface) 0%, var(--bg-elevated) 100%);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 25px;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 2.5rem;
+            font-weight: 800;
+            color: var(--cyan);
+            margin-bottom: 10px;
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+
+        /* Badges */
+        .badge {
+            display: inline-block;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-right: 8px;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+
+        .badge-hot {
+            background: rgba(239, 68, 68, 0.2);
+            color: #FCA5A5;
+            border: 1px solid rgba(239, 68, 68, 0.3);
+        }
+
+        .badge-warm {
+            background: rgba(245, 158, 11, 0.2);
+            color: #FCD34D;
+            border: 1px solid rgba(245, 158, 11, 0.3);
+        }
+
+        .badge-cold {
+            background: rgba(59, 130, 246, 0.2);
+            color: #93C5FD;
+            border: 1px solid rgba(59, 130, 246, 0.3);
+        }
+
+        /* Message Templates */
+        .message-template {
+            background: var(--bg-surface);
+            border-left: 4px solid var(--accent);
+            border: 1px solid var(--border);
+            border-left: 4px solid var(--accent);
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 25px;
+            font-style: italic;
+        }
+
+        .template-label {
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: var(--cyan);
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+            margin-bottom: 12px;
+            display: block;
+        }
+
+        .message-template p {
+            color: var(--text-secondary);
+            margin-bottom: 10px;
+        }
+
+        /* Checklists */
+        .checklist {
+            list-style: none;
+            margin-bottom: 25px;
+        }
+
+        .checklist-item {
+            display: flex;
+            align-items: flex-start;
+            padding: 12px;
+            margin-bottom: 8px;
+            background: var(--bg-surface);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            transition: all 0.3s ease;
+        }
+
+        .checklist-item:hover {
+            background: var(--bg-hover);
+            border-color: var(--border-hover);
+        }
+
+        .checklist-input {
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            min-width: 20px;
+            margin-right: 15px;
+            margin-top: 2px;
+            border: 2px solid var(--accent);
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            background: transparent;
+        }
+
+        .checklist-input:checked {
+            background: var(--accent);
+            border-color: var(--accent);
+        }
+
+        .checklist-input:checked::after {
+            content: '✓';
+            color: var(--bg);
+            font-weight: bold;
+            position: absolute;
+            left: 3px;
+            top: -2px;
+        }
+
+        .checklist-label {
+            color: var(--text-secondary);
+            cursor: pointer;
+            flex: 1;
+        }
+
+        /* Collapsible Sections */
+        details {
+            background: var(--bg-surface);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            cursor: pointer;
+        }
+
+        details[open] {
+            background: var(--bg-elevated);
+            border-color: var(--border-hover);
+        }
+
+        summary {
+            font-weight: 600;
+            color: var(--cyan);
+            user-select: none;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        summary::marker {
+            color: var(--cyan);
+        }
+
+        details p {
+            margin-top: 15px;
+            color: var(--text-secondary);
+        }
+
+        /* ASCII Art Conversion to Visual Pipeline */
+        .pipeline {
+            background: var(--bg-surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 30px;
+            margin-bottom: 30px;
+            overflow-x: auto;
+        }
+
+        .pipeline-stages {
+            display: flex;
+            gap: 20px;
+            justify-content: space-between;
+            align-items: flex-start;
+            min-width: 100%;
+        }
+
+        .pipeline-stage {
+            flex: 1;
+            min-width: 150px;
+            text-align: center;
+        }
+
+        .stage-box {
+            background: linear-gradient(135deg, var(--bg-elevated) 0%, var(--bg-hover) 100%);
+            border: 2px solid var(--accent);
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 15px;
+        }
+
+        .stage-title {
+            font-weight: 700;
+            color: var(--cyan);
+            margin-bottom: 8px;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+        }
+
+        .stage-subtitle {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            line-height: 1.4;
+        }
+
+        .arrow {
+            color: var(--accent);
+            font-size: 1.5rem;
+            margin: 0 10px;
+            align-self: center;
+        }
+
+        /* Lists */
+        ul, ol {
+            margin-bottom: 20px;
+            padding-left: 25px;
+        }
+
+        li {
+            margin-bottom: 8px;
+            color: var(--text-secondary);
+        }
+
+        li strong {
+            color: var(--text);
+        }
+
+        /* Highlights */
+        .highlight {
+            background: rgba(59, 130, 246, 0.1);
+            border-left: 4px solid var(--accent);
+            padding: 15px 20px;
+            margin-bottom: 20px;
+            border-radius: 4px;
+        }
+
+        .highlight strong {
+            color: var(--cyan);
+        }
+
+        /* Footer */
+        .footer {
+            border-top: 1px solid var(--border);
+            padding: 40px;
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            background: var(--bg-surface);
+            margin-top: 80px;
+        }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .container {
+                flex-direction: column;
+                gap: 20px;
+            }
+
+            .sidebar {
+                position: relative;
+                top: 0;
+                width: 100%;
+            }
+
+            .header h1 {
+                font-size: 2.5rem;
+            }
+
+            .pipeline-stages {
+                flex-direction: column;
+            }
+
+            .arrow {
+                transform: rotate(90deg);
+                margin: 10px 0;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 30px 20px;
+            }
+
+            .header {
+                padding: 40px 20px;
+            }
+
+            .header h1 {
+                font-size: 1.8rem;
+            }
+
+            .header-meta {
+                gap: 15px;
+            }
+
+            h2 {
+                font-size: 1.6rem;
+            }
+
+            h3 {
+                font-size: 1.1rem;
+            }
+
+            table {
+                font-size: 0.85rem;
+            }
+
+            th, td {
+                padding: 10px;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Smooth transitions */
+        * {
+            transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="header-content">
+            <h1>Prospection Axiom — Recherche Complète</h1>
+            <p style="color: var(--text-secondary); margin-top: 15px; font-size: 1.1rem;">
+                Identification, qualification et scaling du pipeline de prospection pour Axiom Marketing
+            </p>
+            <div class="header-meta">
+                <div class="meta-item">
+                    <div class="meta-label">Date</div>
+                    <div class="meta-value">18 mars 2026</div>
+                </div>
+                <div class="meta-item">
+                    <div class="meta-label">Mode</div>
+                    <div class="meta-value">6 agents parallèles</div>
+                </div>
+                <div class="meta-item">
+                    <div class="meta-label">Pour</div>
+                    <div class="meta-value">Axiom Marketing / UNIVILE SAS</div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <div class="container">
+        <!-- Sidebar with TOC -->
+        <aside class="sidebar">
+            <div class="toc">
+                <div class="toc-title">Sommaire</div>
+                <ul class="toc-list">
+                    <li class="toc-item"><a href="#section-1" class="toc-link">Vue d'ensemble</a></li>
+                    <li class="toc-item"><a href="#section-2" class="toc-link">Identification & Ciblage</a></li>
+                    <li class="toc-item"><a href="#section-3" class="toc-link">Enrichissement & Qualification</a></li>
+                    <li class="toc-item"><a href="#section-4" class="toc-link">Premier Contact</a></li>
+                    <li class="toc-item"><a href="#section-5" class="toc-link">Nurturing & Engagement</a></li>
+                    <li class="toc-item"><a href="#section-6" class="toc-link">Découverte Avancée</a></li>
+                    <li class="toc-item"><a href="#section-7" class="toc-link">Proposition & Closing</a></li>
+                    <li class="toc-item"><a href="#section-8" class="toc-link">Post-Vente & Referral</a></li>
+                    <li class="toc-item"><a href="#section-9" class="toc-link">Canaux Détaillés</a></li>
+                    <li class="toc-item"><a href="#section-10" class="toc-link">Concurrents</a></li>
+                    <li class="toc-item"><a href="#section-11" class="toc-link">Outils & Stack</a></li>
+                    <li class="toc-item"><a href="#section-12" class="toc-link">Agents IA</a></li>
+                    <li class="toc-item"><a href="#section-13" class="toc-link">Métriques & KPIs</a></li>
+                    <li class="toc-item"><a href="#section-14" class="toc-link">Plan d'action</a></li>
+                    <li class="toc-item"><a href="#section-15" class="toc-link">Sources</a></li>
+                </ul>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main">
+            <!-- Section 1: Vue d'ensemble -->
+            <section id="section-1">
+                <h2>Vue d'ensemble du pipeline</h2>
+
+                <h3>Le pipeline de prospection en 7 étapes</h3>
+
+                <div class="pipeline">
+                    <div class="pipeline-stages">
+                        <div class="pipeline-stage">
+                            <div class="stage-box">
+                                <div class="stage-title">Étape 1</div>
+                                <div class="stage-subtitle">Identification & Ciblage</div>
+                            </div>
+                            <div style="color: var(--accent); font-size: 1.8rem;">↓</div>
+                        </div>
+                        <div class="pipeline-stage">
+                            <div class="stage-box">
+                                <div class="stage-title">Étape 2</div>
+                                <div class="stage-subtitle">Enrichissement & Qualification</div>
+                            </div>
+                            <div style="color: var(--accent); font-size: 1.8rem;">↓</div>
+                        </div>
+                        <div class="pipeline-stage">
+                            <div class="stage-box">
+                                <div class="stage-title">Étape 3</div>
+                                <div class="stage-subtitle">Premier Contact (Outreach)</div>
+                            </div>
+                            <div style="color: var(--accent); font-size: 1.8rem;">↓</div>
+                        </div>
+                        <div class="pipeline-stage">
+                            <div class="stage-box">
+                                <div class="stage-title">Étape 4</div>
+                                <div class="stage-subtitle">Nurturing & Engagement</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="pipeline">
+                    <div class="pipeline-stages">
+                        <div class="pipeline-stage">
+                            <div class="stage-box">
+                                <div class="stage-title">Étape 5</div>
+                                <div class="stage-subtitle">Découverte & Qualification Avancée</div>
+                            </div>
+                            <div style="color: var(--accent); font-size: 1.8rem;">↓</div>
+                        </div>
+                        <div class="pipeline-stage">
+                            <div class="stage-box">
+                                <div class="stage-title">Étape 6</div>
+                                <div class="stage-subtitle">Proposition & Closing</div>
+                            </div>
+                            <div style="color: var(--accent); font-size: 1.8rem;">↓</div>
+                        </div>
+                        <div class="pipeline-stage">
+                            <div class="stage-box">
+                                <div class="stage-title">Étape 7</div>
+                                <div class="stage-subtitle">Post-Vente & Referral</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <h3>Statistiques clés du pipeline (2025-2026)</h3>
+
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Métrique</th>
+                            <th>Valeur</th>
+                            <th>Source</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Taux réponse cold email</td>
+                            <td><span class="badge badge-warm">1-5% (excellent: 10%+)</span></td>
+                            <td>Sopro 2026</td>
+                        </tr>
+                        <tr>
+                            <td>Taux réponse LinkedIn</td>
+                            <td><span class="badge badge-hot">19.98%</span></td>
+                            <td>Belkins 2025</td>
+                        </tr>
+                        <tr>
+                            <td>Conversion multicanal</td>
+                            <td><span class="badge badge-hot">4-7%</span></td>
+                            <td>Prospeo 2026</td>
+                        </tr>
+                        <tr>
+                            <td>CAC outbound optimisé</td>
+                            <td>150-400 EUR</td>
+                            <td>UserMaven 2026</td>
+                        </tr>
+                        <tr>
+                            <td>CAC referral</td>
+                            <td><span class="badge badge-hot">50-150 EUR</span></td>
+                            <td>Deeto 2025</td>
+                        </tr>
+                        <tr>
+                            <td>Referrals: conversion</td>
+                            <td><span class="badge badge-hot">4x plus élevée</span></td>
+                            <td>Deeto 2025</td>
+                        </tr>
+                        <tr>
+                            <td>Intent data: conversion</td>
+                            <td><span class="badge badge-hot">+47% meilleure</span></td>
+                            <td>Marketing Tech 2025</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </section>
+
+            <!-- Section 2: Identification & Ciblage -->
+            <section id="section-2">
+                <h2>Identification & Ciblage</h2>
+
+                <h3>Définir l'ICP (Ideal Customer Profile) d'Axiom</h3>
+
+                <div class="card">
+                    <h4>Segment 1 — PME France métro (priorité haute)</h4>
+                    <p><strong>Taille :</strong> 50-500 salariés</p>
+                    <p><strong>Décideurs :</strong> DG, CMO, DSI, CTO</p>
+                    <p><strong>Budget :</strong> 15 000-80 000 EUR</p>
+                    <p><strong>Besoin :</strong> Refonte site, app mobile, app métier, e-commerce</p>
+                    <p><strong>Argument Axiom :</strong> Qualité métro, prix -40-60%, livraison 4-6 semaines</p>
+                </div>
+
+                <div class="card">
+                    <h4>Segment 2 — E-commerçants Shopify (priorité haute)</h4>
+                    <p><strong>Taille :</strong> CA 50K-5M EUR/an sur Shopify</p>
+                    <p><strong>Décideurs :</strong> Fondateur, Head of Growth, CMO</p>
+                    <p><strong>Budget :</strong> 990 EUR + 89 EUR/mois (tracking) ou 5-20K (refonte)</p>
+                    <p><strong>Besoin :</strong> Tracking server-side, optimisation conversions</p>
+                    <p><strong>Argument Axiom :</strong> +47% conversions prouvées, ROI mois 1</p>
+                </div>
+
+                <div class="card">
+                    <h4>Segment 3 — Collectivités DOM-TOM (priorité moyenne-haute)</h4>
+                    <p><strong>Cibles :</strong> Mairies, EPCI, établissements publics</p>
+                    <p><strong>Décideurs :</strong> DGS, DSI, élus numériques</p>
+                    <p><strong>Budget :</strong> 8 000-50 000 EUR (marché public)</p>
+                    <p><strong>Besoin :</strong> Site RGAA, portail citoyen, dématérialisation</p>
+                    <p><strong>Argument Axiom :</strong> Conformité RGAA, proximité locale, 88% achat local</p>
+                </div>
+
+                <h3>Signaux d'intention à détecter</h3>
+
+                <div class="highlight">
+                    <strong>Les signaux permettent de passer d'une prospection froide (2% réponse) à une prospection chaude (15-22% réponse).</strong> Agir dans les 48h = +4x taux de conversion.
+                </div>
+
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Signal</th>
+                            <th>Où le détecter</th>
+                            <th>Action Axiom</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>Levée de fonds</strong></td>
+                            <td>Crunchbase, LinkedIn, presse</td>
+                            <td>Prospect chaud (cash = budget web)</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Recrutement CMO/CTO/dev</strong></td>
+                            <td>LinkedIn, Indeed, WTTJ</td>
+                            <td>Nouveau décideur OU besoin non satisfait</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Offre d'emploi "développeur web"</strong></td>
+                            <td>Job boards</td>
+                            <td>L'entreprise cherche en interne = externaliser</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Site lent (>3s)</strong></td>
+                            <td>Lighthouse, PageSpeed</td>
+                            <td>Audit gratuit comme porte d'entrée</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Site non conforme RGAA</strong></td>
+                            <td>Scan automatisé</td>
+                            <td>Argument réglementaire (sanctions 50K EUR)</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <h3>Veille marchés publics</h3>
+
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Plateforme</th>
+                            <th>URL</th>
+                            <th>Usage</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>BOAMP</strong></td>
+                            <td>boamp.fr</td>
+                            <td>Alertes officielles, mots-clés IT</td>
+                        </tr>
+                        <tr>
+                            <td><strong>France Marchés</strong></td>
+                            <td>francemarches.com</td>
+                            <td>+300 sources agrégées, 1 478 AO "dev web"</td>
+                        </tr>
+                        <tr>
+                            <td><strong>PLACE</strong></td>
+                            <td>marches-publics.gouv.fr</td>
+                            <td>Marchés État</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <h3>Seuils marchés publics (mise à jour 2026)</h3>
+
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Seuil</th>
+                            <th>Procédure</th>
+                            <th>Implication Axiom</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>< 60 000 EUR HT</td>
+                            <td>Dispense publicité</td>
+                            <td>Achat direct, 3 devis</td>
+                        </tr>
+                        <tr>
+                            <td>40 000 - 90 000 EUR</td>
+                            <td>MAPA flexible</td>
+                            <td>Procédure allégée</td>
+                        </tr>
+                        <tr>
+                            <td>> 90 000 EUR</td>
+                            <td>Appel d'offres formel</td>
+                            <td>Mémoire technique complet</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </section>
+
+            <!-- Section 3: Enrichissement & Qualification -->
+            <section id="section-3">
+                <h2>Enrichissement & Qualification</h2>
+
+                <h3>Enrichissement des données prospect</h3>
+
+                <p>Transformer une liste brute (nom, entreprise) en fiche prospect actionnable (email, téléphone, stack technique, signaux, scoring).</p>
+
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Outil</th>
+                            <th>Prix/mois</th>
+                            <th>Données</th>
+                            <th>Score PME</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>Apollo.io</strong></td>
+                            <td>49-119$</td>
+                            <td>275M+ contacts, email, phone, intent</td>
+                            <td><span class="badge badge-hot">9/10</span></td>
+                        </tr>
+                        <tr>
+                            <td><strong>Hunter.io</strong></td>
+                            <td>49 EUR</td>
+                            <td>Email finder, vérification</td>
+                            <td>7/10</td>
+                        </tr>
+                        <tr>
+                            <td><strong>LinkedIn Sales Navigator</strong></td>
+                            <td>65 EUR</td>
+                            <td>Filtres avancés, signaux, InMails</td>
+                            <td><span class="badge badge-hot">9/10</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <h3>Lead scoring</h3>
+
+                <p>Attribuer un score à chaque prospect pour prioriser l'effort.</p>
+
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Critère</th>
+                            <th>Points</th>
+                            <th>Explication</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>ICP match</td>
+                            <td>+30</td>
+                            <td>Correspond au profil idéal</td>
+                        </tr>
+                        <tr>
+                            <td>Signal d'intention détecté</td>
+                            <td>+25</td>
+                            <td>Levée, recrutement, AO, site lent</td>
+                        </tr>
+                        <tr>
+                            <td>Engagement LinkedIn</td>
+                            <td>+15</td>
+                            <td>A aimé/commenté du contenu tech</td>
+                        </tr>
+                        <tr>
+                            <td>Visite site Axiom</td>
+                            <td>+20</td>
+                            <td>Détecté par Warmly.ai</td>
+                        </tr>
+                        <tr>
+                            <td>Budget estimé > 10K</td>
+                            <td>+10</td>
+                            <td>Potentiel de deal</td>
+                        </tr>
+                        <tr>
+                            <td colspan="3" style="background: rgba(59, 130, 246, 0.1); font-weight: 600; color: var(--cyan);"><strong>TOTAL > 70</strong> = <span class="badge badge-hot">HOT</span> | Contacter dans les 48h</td>
+                        </tr>
+                        <tr>
+                            <td colspan="3" style="background: rgba(245, 158, 11, 0.1); font-weight: 600; color: var(--amber);"><strong>TOTAL 40-70</strong> = <span class="badge badge-warm">WARM</span> | Séquence multicanale</td>
+                        </tr>
+                        <tr>
+                            <td colspan="3" style="background: rgba(59, 130, 246, 0.1); font-weight: 600; color: var(--accent);"><strong>TOTAL < 40</strong> = <span class="badge badge-cold">COLD</span> | Nurturing long terme</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <h3>Qualification NEAT</h3>
+
+                <p>À utiliser en appel découverte.</p>
+
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Lettre</th>
+                            <th>Question</th>
+                            <th>Ce qu'on vérifie</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>N</strong>eeds</td>
+                            <td>"Quel problème spécifique cherchez-vous à résoudre ?"</td>
+                            <td>Besoin réel vs curiosité</td>
+                        </tr>
+                        <tr>
+                            <td><strong>E</strong>conomics</td>
+                            <td>"Avez-vous un budget alloué pour ce projet ?"</td>
+                            <td>Capacité financière</td>
+                        </tr>
+                        <tr>
+                            <td><strong>A</strong>uto-qual</td>
+                            <td>"Comment envisagez-vous la solution idéale ?"</td>
+                            <td>Le prospect reconnaît-il le besoin ?</td>
+                        </tr>
+                        <tr>
+                            <td><strong>T</strong>imeline</td>
+                            <td>"Quand devez-vous avoir une solution en place ?"</td>
+                            <td>Urgence réelle</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </section>
+
+            <!-- Section 4: Premier Contact -->
+            <section id="section-4">
+                <h2>Premier Contact (Outreach)</h2>
+
+                <h3>Stratégie multicanale (3.5x plus efficace que monocanal)</h3>
+
+                <p><strong>Séquence optimale sur 14 jours :</strong></p>
+
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Jour</th>
+                            <th>Canal</th>
+                            <th>Action</th>
+                            <th>Contenu</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>J0</strong></td>
+                            <td>LinkedIn</td>
+                            <td>Connexion + note personnalisée</td>
+                            <td>Signal-based : "Vu [élément spécifique]..."</td>
+                        </tr>
+                        <tr>
+                            <td><strong>J1-2</strong></td>
+                            <td>Email</td>
+                            <td>Email froid personnalisé</td>
+                            <td>Framework Challenger: teach + tailor</td>
+                        </tr>
+                        <tr>
+                            <td><strong>J3-5</strong></td>
+                            <td>LinkedIn</td>
+                            <td>Engagement (liker 2-3 posts)</td>
+                            <td>Familiarité avant relance</td>
+                        </tr>
+                        <tr>
+                            <td><strong>J8</strong></td>
+                            <td>Email</td>
+                            <td>2e email (angle différent)</td>
+                            <td>Contenu utile gratuit ou cas d'étude</td>
+                        </tr>
+                        <tr>
+                            <td><strong>J10</strong></td>
+                            <td>LinkedIn</td>
+                            <td>Dernière relance LinkedIn</td>
+                            <td>Proposition slot Calendly</td>
+                        </tr>
+                        <tr>
+                            <td><strong>J14</strong></td>
+                            <td>Phone</td>
+                            <td>Appel warm (si emails ouverts)</td>
+                            <td>"Viens de vous mailer, 5 min ?"</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <h3>Cold Email — Templates qui marchent</h3>
+
+                <div class="message-template">
+                    <span class="template-label">Template Challenger Sale (8-15% réponse)</span>
+                    <p><strong>Objet :</strong> [Signal spécifique] — [Entreprise] perd [X]</p>
+                    <p><strong>Corps :</strong></p>
+                    <p>Bonjour [Prénom],</p>
+                    <p>[TEACH] En 2026, 40% des visiteurs abandonnent après 3s de chargement. Votre site charge actuellement en [X]s.</p>
+                    <p>[TAILOR] Pour [secteur du prospect], ça représente une perte estimée de [X]% de conversions = [X] EUR/mois de CA non capté.</p>
+                    <p>[QUESTION] Mesurez-vous votre taux de conversion actuellement ?</p>
+                    <p>Heureux d'en parler en 15 min si c'est pertinent.</p>
+                    <p>[Prénom]<br>Axiom Marketing — Studio d'ingénierie web IA-augmenté</p>
+                </div>
+
+                <div class="message-template">
+                    <span class="template-label">Template Cas Client (10-12% réponse)</span>
+                    <p><strong>Objet :</strong> Comment [Client similaire] a gagné +47% de conversions</p>
+                    <p><strong>Corps :</strong></p>
+                    <p>Bonjour [Prénom],</p>
+                    <p>J'ai aidé [Entreprise similaire] à passer de [problème] à [résultat].</p>
+                    <p>Avant : ROAS 2.6x, 40% de conversions perdues aux adblockers<br>
+                    Après : ROAS 4.1x, CPA -33%, +5 200 EUR CA additionnel/mois</p>
+                    <p>Vu votre position chez [Entreprise], une approche similaire pourrait être pertinente.</p>
+                    <p>Ouvert à un échange de 15 min ?</p>
+                </div>
+
+                <h3>LinkedIn — Messages qui marchent (40%+ taux acceptation)</h3>
+
+                <div class="message-template">
+                    <span class="template-label">Note de connexion (signal-based)</span>
+                    <p>Bonjour [Prénom], j'ai vu que [Entreprise] a lancé [produit/recrutement/news]. Je travaille sur des sujets similaires avec [type d'entreprises]. Ravi de connecter !</p>
+                </div>
+
+                <div class="message-template">
+                    <span class="template-label">Message post-connexion</span>
+                    <p>Merci d'avoir accepté [Prénom] !</p>
+                    <p>En tant que [poste] chez [entreprise], j'imagine que [problème spécifique] est un sujet quotidien.</p>
+                    <p>J'aide des entreprises comme [client exemple] à [solution concrète]. Résultat : [métrique chiffrée] en [durée].</p>
+                    <p>Est-ce un sujet qui vous parle actuellement ?</p>
+                </div>
+
+                <h3>Volumes sûrs (automatisation LinkedIn)</h3>
+
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Action</th>
+                            <th>Limite officielle</th>
+                            <th>Volume sûr recommandé</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Connexions/jour</td>
+                            <td>50</td>
+                            <td><strong>10-20</strong></td>
+                        </tr>
+                        <tr>
+                            <td>Connexions/semaine</td>
+                            <td>200</td>
+                            <td><strong>100-150</strong></td>
+                        </tr>
+                        <tr>
+                            <td>Messages/jour (1er degré)</td>
+                            <td>~150</td>
+                            <td><strong>50-100</strong></td>
+                        </tr>
+                        <tr>
+                            <td>InMails/jour</td>
+                            <td>Pas de limite</td>
+                            <td><strong>10-20</strong></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </section>
+
+            <!-- Section 5: Nurturing & Engagement -->
+            <section id="section-5">
+                <h2>Nurturing & Engagement</h2>
+
+                <h3>Content Marketing (inbound)</h3>
+
+                <div class="highlight">
+                    <strong>ROI prouvé :</strong> 54% plus de leads que outbound, 62% réduction du coût d'acquisition
+                </div>
+
+                <p><strong>Stratégie contenu Axiom :</strong></p>
+
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Format</th>
+                            <th>Fréquence</th>
+                            <th>Objectif</th>
+                            <th>Canal</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>Posts LinkedIn founder-led</strong></td>
+                            <td>3-5/semaine</td>
+                            <td>Personal branding, leads</td>
+                            <td>LinkedIn</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Carrousels LinkedIn</strong></td>
+                            <td>1-2/semaine</td>
+                            <td>+11.2x impressions vs texte</td>
+                            <td>LinkedIn</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Vidéos verticales (<2min)</strong></td>
+                            <td>1/semaine</td>
+                            <td>+71% impressions vs horizontal</td>
+                            <td>LinkedIn, TikTok</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Blog SEO</strong></td>
+                            <td>2-4/mois</td>
+                            <td>Trafic organique long terme</td>
+                            <td>Site Axiom</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Case studies vidéo</strong></td>
+                            <td>1/mois</td>
+                            <td>Preuve sociale maximale</td>
+                            <td>YouTube, LinkedIn</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Newsletter</strong></td>
+                            <td>1/semaine</td>
+                            <td>Veille tech pour décideurs</td>
+                            <td>Email</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <h3>Sujets prioritaires</h3>
+
+                <ul>
+                    <li>Pourquoi le code sur-mesure vs WordPress</li>
+                    <li>IA dans le dev : mythes vs réalité</li>
+                    <li>Tracking server-side : récupérer 40% de conversions perdues</li>
+                    <li>RGAA : conformité obligatoire, sanctions, solutions</li>
+                    <li>Flutter vs React Native : le bon choix en 2026</li>
+                    <li>Before/after : cas clients chiffrés</li>
+                </ul>
+
+                <h3>Webinaires</h3>
+
+                <div class="card">
+                    <p><strong>Coût par lead :</strong> 72 EUR (moins cher que Google Ads à 92 EUR)</p>
+                    <p><strong>62% des attendees</strong> intéressés par une démo ensuite</p>
+                    <p><strong>Format optimal :</strong> 45-50 min (10 intro + 25 contenu + 10 Q&A + 5 soft pitch)</p>
+                    <p><strong>Résultat :</strong> 50-100 inscrits → 20-40 attendees → 2-5 démos → 1-2 clients</p>
+                </div>
+
+                <p><strong>Idées de webinaires Axiom :</strong></p>
+                <ul>
+                    <li>"Audit Performance Web en direct — votre site est-il rapide ?"</li>
+                    <li>"IA en dev web : comment livrer en 4 semaines au lieu de 4 mois"</li>
+                    <li>"RGAA 2026 : ce que les collectivités doivent savoir"</li>
+                </ul>
+            </section>
+
+            <!-- Section 6: Découverte Avancée -->
+            <section id="section-6">
+                <h2>Découverte & Qualification Avancée</h2>
+
+                <h3>Appel découverte (30 min Zoom)</h3>
+
+                <p><strong>Structure :</strong></p>
+                <ul>
+                    <li>0-2 min : Small talk</li>
+                    <li>2-5 min : Contexte (signal qui a déclenché le contact)</li>
+                    <li>5-20 min : <strong>Questions SPIN</strong> (écouter 60% du temps)</li>
+                    <li>20-28 min : Votre approche (comment vous résoudriez)</li>
+                    <li>28-30 min : Next step (audit gratuit, démo)</li>
+                </ul>
+
+                <h3>Questions SPIN</h3>
+
+                <pre>S (Situation) : "Vous utilisez actuellement [X] ?"
+P (Problème) : "Quels challenges voyez-vous avec l'approche actuelle ?"
+I (Implication) : "Et ça affecte quoi ? Revenue, temps, coûts ?"
+N (Need-Payoff) : "Serait-il utile si on pouvait résoudre ça en 3 mois ?"</pre>
+
+                <h3>Audit gratuit</h3>
+
+                <p>C'est le <strong>différenciateur Axiom</strong> : audit gratuit en 24h, sans engagement.</p>
+
+                <p><strong>Contenu de l'audit :</strong></p>
+                <ul>
+                    <li>Score Lighthouse (performance, accessibilité, SEO, bonnes pratiques)</li>
+                    <li>Analyse Core Web Vitals</li>
+                    <li>Scan RGAA (si collectivité)</li>
+                    <li>Analyse stack technique (BuiltWith/Wappalyzer)</li>
+                    <li>3-5 recommandations priorisées</li>
+                    <li>Estimation ROI si modernisation</li>
+                </ul>
+
+                <h3>Scoring de qualification sortante</h3>
+
+                <p>Après l'appel, qualifier via NEAT :</p>
+
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Score</th>
+                            <th>Critères</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><span class="badge badge-hot">SQL</span><br>(Sales Qualified)</td>
+                            <td>Needs Yes + Budget Yes + Timeline < 3 mois</td>
+                            <td>Démo/proposition</td>
+                        </tr>
+                        <tr>
+                            <td><span class="badge badge-warm">MQL</span><br>(Marketing Qualified)</td>
+                            <td>Needs Yes + Timeline < 6 mois</td>
+                            <td>Nurturing actif</td>
+                        </tr>
+                        <tr>
+                            <td><span class="badge badge-cold">Not Qualified</span></td>
+                            <td>Pas de besoin réel ou budget</td>
+                            <td>Remettre en nurture long terme</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </section>
+
+            <!-- Section 7: Proposition & Closing -->
+            <section id="section-7">
+                <h2>Proposition & Closing</h2>
+
+                <h3>Démo/audit approfondi (45 min)</h3>
+
+                <p><strong>Structure :</strong></p>
+                <ol>
+                    <li>Rappel contexte (2 min)</li>
+                    <li>Résultats audit (15 min) : cas client + chiffres</li>
+                    <li>Solution proposée (15 min) : process, timeline, équipe</li>
+                    <li>ROI estimé (10 min) : investissement vs gain</li>
+                    <li>Prochaines étapes (3 min)</li>
+                </ol>
+
+                <h3>Proposal formelle</h3>
+
+                <p><strong>Contenu :</strong></p>
+                <ul>
+                    <li>Scope détaillé</li>
+                    <li>Timeline par phase</li>
+                    <li>Prix fixe (transparence radicale Axiom)</li>
+                    <li>Équipe dédiée (Jonathan, Marty)</li>
+                    <li>Conditions (garantie, maintenance, réversibilité)</li>
+                    <li>Signature électronique (DocuSign ou similaire)</li>
+                </ul>
+
+                <h3>Gestion des objections</h3>
+
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Objection</th>
+                            <th>Réponse</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>"C'est trop cher"</td>
+                            <td>"Notre prix Réunion est 40-60% inférieur aux agences métro. Pour [X], ça représente [ROI calculé]."</td>
+                        </tr>
+                        <tr>
+                            <td>"On peut le faire en interne"</td>
+                            <td>"Une offre d'emploi dev senior coûte 50-80K/an + 6 mois de recrutement. Nous livrons en 4-6 semaines."</td>
+                        </tr>
+                        <tr>
+                            <td>"Vous êtes petits"</td>
+                            <td>"C'est notre force : équipe senior, pas de layers. Jonathan (15+ ans) travaille directement sur votre projet."</td>
+                        </tr>
+                        <tr>
+                            <td>"La Réunion, c'est fiable ?"</td>
+                            <td>"Nous servons la France entière et l'international. Même stack que les meilleures agences parisiennes."</td>
+                        </tr>
+                        <tr>
+                            <td>"Pourquoi pas WordPress ?"</td>
+                            <td>"WordPress = 43% du web mais 90% des failles de sécurité. Code sur-mesure = Lighthouse 95+, 0 plugin."</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </section>
+
+            <!-- Section 8: Post-Vente & Referral -->
+            <section id="section-8">
+                <h2>Post-Vente & Referral</h2>
+
+                <h3>Programme de referral</h3>
+
+                <p>Les referrals sont le canal le moins cher (<strong>50-150 EUR CAC</strong>) et le plus qualifié (<strong>4x conversion</strong>).</p>
+
+                <p><strong>Qui peut referer ?</strong></p>
+                <ul>
+                    <li>Clients satisfaits (best source)</li>
+                    <li>Agences marketing/SEO/growth (partenaires non-concurrents)</li>
+                    <li>Comptables, avocats (leurs clients = entreprises web-ready)</li>
+                    <li>Consultants métier (fintech, e-commerce, retail)</li>
+                    <li>Freelances du réseau</li>
+                </ul>
+
+                <p><strong>Modèles de commission :</strong></p>
+                <ul>
+                    <li>Modèle 1 : 10-15% sur premier projet (client 10K = 1-1.5K pour le référent)</li>
+                    <li>Modèle 2 : Montant fixe (500 EUR par client qui signe)</li>
+                    <li>Modèle 3 : Échange de services (barter)</li>
+                </ul>
+
+                <p><strong>Résultat attendu :</strong> 3-5 partenaires actifs = 5-15 refs/mois = 1-3 clients/mois</p>
+
+                <h3>Partenariats white-label</h3>
+
+                <div class="highlight">
+                    <strong>Données choquantes (2025) :</strong> Agences outsourcing 40-60% de la prestation croissent <strong>2.3x plus vite</strong>
+                </div>
+
+                <p><strong>Partenaires cibles pour Axiom :</strong></p>
+                <ul>
+                    <li>Agences growth marketing (Growth Room, Scalability)</li>
+                    <li>Agences SEO/SEM sans capacité dev</li>
+                    <li>Consultants growth hacking</li>
+                    <li>Cabinets conseil digital</li>
+                </ul>
+
+                <h3>Partenariats éditeurs</h3>
+
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Éditeur</th>
+                            <th>Avantage</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>Shopify Partner</strong></td>
+                            <td>Accès outils dev, training, co-marketing, Partner Directory</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Scaleway Partner</strong></td>
+                            <td>Cloud infra, recommandations mutuelles</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Certification Kap Numerik</strong></td>
+                            <td>Levier commercial local (subvention 3 200 EUR)</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <h3>Upsell / Cross-sell</h3>
+
+                <pre>Site vitrine (1 500 EUR)
+    ↓ le client grandit
+E-commerce Shopify (5 000 EUR)
+    ↓ besoin de tracking
+Axiom Tracking (990 EUR + 89 EUR/mois)
+    ↓ besoin d'ERP
+OmnySync (intégration Cegid/Sage)
+    ↓ besoin d'outils internes
+App métier (25 000 EUR+)
+    ↓ besoin d'équipe terrain
+App mobile Flutter (15 000 EUR+)</pre>
+            </section>
+
+            <!-- Section 9: Canaux Détaillés -->
+            <section id="section-9">
+                <h2>Canaux de Prospection Détaillés</h2>
+
+                <h3>Comparaison des canaux</h3>
+
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Canal</th>
+                            <th>Taux réponse</th>
+                            <th>Conversion→RDV</th>
+                            <th>CAC</th>
+                            <th>Temps setup</th>
+                            <th>ROI timeline</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>Cold Email</strong></td>
+                            <td>1-5% (10%+ optimisé)</td>
+                            <td>10-25%</td>
+                            <td>50-100 EUR</td>
+                            <td>1 semaine</td>
+                            <td>Immédiat</td>
+                        </tr>
+                        <tr>
+                            <td><strong>LinkedIn</strong></td>
+                            <td><span class="badge badge-hot">19.98%</span></td>
+                            <td><span class="badge badge-hot">48%</span></td>
+                            <td>0-100 EUR</td>
+                            <td>2 semaines</td>
+                            <td>Immédiat</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Cold Call (warm)</strong></td>
+                            <td>2.5% meetings</td>
+                            <td>N/A</td>
+                            <td>20 EUR</td>
+                            <td>0</td>
+                            <td>Immédiat</td>
+                        </tr>
+                        <tr>
+                            <td><strong>SEO/Content</strong></td>
+                            <td>N/A</td>
+                            <td>5-15%</td>
+                            <td>200 EUR</td>
+                            <td>3-6 mois</td>
+                            <td>6-12 mois</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Webinaires</strong></td>
+                            <td>N/A</td>
+                            <td>20-30%</td>
+                            <td>72 EUR/lead</td>
+                            <td>2-4 semaines</td>
+                            <td>1-2 mois</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Referral</strong></td>
+                            <td>N/A</td>
+                            <td><span class="badge badge-hot">50%+</span></td>
+                            <td><span class="badge badge-hot">50-150 EUR</span></td>
+                            <td>1-2 mois</td>
+                            <td>2-3 mois</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Marchés publics</strong></td>
+                            <td>N/A</td>
+                            <td>Variable</td>
+                            <td>200-500 EUR</td>
+                            <td>1-3 mois</td>
+                            <td>3-6 mois</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Multicanal</strong></td>
+                            <td><span class="badge badge-hot">4-7%</span></td>
+                            <td><span class="badge badge-hot">40-60%</span></td>
+                            <td>100-150 EUR</td>
+                            <td>2-4 semaines</td>
+                            <td>Immédiat</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <h3>Répartition idéale du pipeline pour Axiom</h3>
+
+                <h4>Phase démarrage (mois 1-6)</h4>
+                <ul>
+                    <li>Outbound multicanal (email + LinkedIn) : <strong>40%</strong></li>
+                    <li>Referral & partenariats : <strong>25%</strong></li>
+                    <li>Marchés publics (MAPA) : <strong>20%</strong></li>
+                    <li>Inbound (SEO, contenu, annuaires) : <strong>15%</strong></li>
+                </ul>
+
+                <h4>Phase croissance (mois 6-12)</h4>
+                <ul>
+                    <li>Inbound (SEO, contenu, annuaires) : <strong>30%</strong></li>
+                    <li>Referral & partenariats : <strong>25%</strong></li>
+                    <li>Outbound multicanal : <strong>25%</strong></li>
+                    <li>Marchés publics : <strong>20%</strong></li>
+                </ul>
+
+                <h4>Phase maturité (année 2+)</h4>
+                <ul>
+                    <li>Inbound : <strong>40%</strong></li>
+                    <li>Referral : <strong>30%</strong></li>
+                    <li>Marchés publics : <strong>20%</strong></li>
+                    <li>Outbound : <strong>10%</strong> (cible uniquement)</li>
+                </ul>
+            </section>
+
+            <!-- Section 10: Concurrents -->
+            <section id="section-10">
+                <h2>Ce que font les Concurrents</h2>
+
+                <h3>Concurrents locaux (La Réunion)</h3>
+
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Agence</th>
+                            <th>Stratégie principale</th>
+                            <th>Leviers identifiés</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>Alba</strong></td>
+                            <td>Clients grands comptes (BNP, Audi)</td>
+                            <td>Réputation → referral → portfolio premium</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Newlions</strong></td>
+                            <td>Blog actif + portfolio clients premium</td>
+                            <td>Content marketing inbound + présence LinkedIn</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Double A</strong></td>
+                            <td>Kap Numerik (subvention)</td>
+                            <td>SEO local + exploitation subsidy régionale</td>
+                        </tr>
+                        <tr>
+                            <td><strong>BDC Web</strong></td>
+                            <td>Livraison 5 jours + Kap Numerik</td>
+                            <td>Promesse de rapidité + subvention</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <h3>Agences nationales leaders</h3>
+
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Agence</th>
+                            <th>Stratégie prospection</th>
+                            <th>Ce qu'Axiom peut copier</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>Yield Studio</strong></td>
+                            <td>Podcast "Hands-On" + case studies ROI + presse</td>
+                            <td>Podcast + case studies chiffrées</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Galadrim</strong></td>
+                            <td>Scale-up + croissance 50%/an + portfolio</td>
+                            <td>Positionnement "excellence technique"</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Digital Unicorn</strong></td>
+                            <td>N°1 agence IA France + 350+ projets</td>
+                            <td>Positionnement IA-natif + volume projets</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <h3>Patterns communs des leaders</h3>
+
+                <ul>
+                    <li><strong>Founder-led content :</strong> Posts personnels du fondateur = 4x interactions vs page entreprise</li>
+                    <li><strong>Case studies ROI :</strong> Chiffres concrets (avant/après, EUR, %)</li>
+                    <li><strong>Spécialisation :</strong> Niche claire (IA, Flutter, Shopify, RGAA)</li>
+                    <li><strong>Certifications/labels :</strong> Kap Numerik, ISO 27001, Shopify Partner, classements Sortlist/Clutch</li>
+                    <li><strong>Événements :</strong> Webinaires, meetups, conférences sectorielles</li>
+                </ul>
+            </section>
+
+            <!-- Section 11: Outils & Stack -->
+            <section id="section-11">
+                <h2>Outils & Stack Recommandé</h2>
+
+                <h3>Stack LEAN (150 EUR/mois) — Phase démarrage</h3>
+
+                <pre>PROSPECTION
+├─ Apollo.io Basic         49$/mois   → Base 275M contacts + email sequences
+├─ LinkedIn Sales Navigator 65 EUR/mois → Filtres avancés + signaux
+
+CRM
+├─ Pipedrive Essential     14 EUR/user/mois (x2 = 28 EUR)
+
+INTENT TRACKING
+├─ Warmly.ai Free          0 EUR      → Visiteurs site web identifiés
+
+AUTOMATION
+├─ Zapier Free             0 EUR      → Sync Apollo → Pipedrive
+
+TOTAL : ~142 EUR/mois</pre>
+
+                <h3>Stack GROWTH (400 EUR/mois) — Phase amplification</h3>
+
+                <pre>PROSPECTION
+├─ Apollo.io Professional   79$/mois   → + A/B testing + intent data
+├─ LinkedIn Sales Navigator 65 EUR/mois
+├─ Waalaxy                  19 EUR/mois → Automation LinkedIn
+
+CRM
+├─ Pipedrive Advanced       39 EUR/user/mois (x2 = 78 EUR)
+
+OUTREACH MULTICANAL
+├─ La Growth Machine        60 EUR/mois → LinkedIn + Email + X orchestre
+├─ Loom Business            15$/mois   → Vidéos prospection personnalisées
+
+INTENT TRACKING
+├─ Warmly.ai Premium        50 EUR/mois → Alertes + automation
+
+AUTOMATION
+├─ Zapier Standard          30 EUR/mois
+
+TOTAL : ~410 EUR/mois</pre>
+
+                <h3>Stack PREMIUM (1 500 EUR/mois) — Phase scaling</h3>
+
+                <pre>PROSPECTION
+├─ Clay Growth              349$/mois  → Enrichissement IA haut de gamme
+├─ Apollo.io Organization   119$/mois
+├─ LinkedIn Sales Navigator 100 EUR/mois
+
+CRM
+├─ HubSpot Professional     100 EUR/mois
+
+OUTREACH
+├─ La Growth Machine Ultimate 180 EUR/mois
+├─ Vidyard Plus              59$/mois → AI Video Avatars
+
+AUTOMATION & AGENTS
+├─ n8n Cloud                 50 EUR/mois → Custom AI agents
+├─ Make Professional         50 EUR/mois
+
+TOTAL : ~1 200-1 500 EUR/mois</pre>
+
+                <h3>IA dans la prospection — Impact mesuré</h3>
+
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Tâche</th>
+                            <th>Avant (2023)</th>
+                            <th>Avec IA (2026)</th>
+                            <th>Gain</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Recherche prospect</td>
+                            <td>15-30 min</td>
+                            <td><strong>30-60 sec</strong></td>
+                            <td>30-40x</td>
+                        </tr>
+                        <tr>
+                            <td>Rédaction email</td>
+                            <td>5-10 min</td>
+                            <td><strong>1-2 min</strong> (draft + review)</td>
+                            <td>5x</td>
+                        </tr>
+                        <tr>
+                            <td>Personnalisation</td>
+                            <td>1 variable (nom)</td>
+                            <td>Variables dynamiques + psycho</td>
+                            <td>5-15% réponse</td>
+                        </tr>
+                        <tr>
+                            <td>Scoring leads</td>
+                            <td>Manuel, subjectif</td>
+                            <td>ML prédictif</td>
+                            <td>+60% précision</td>
+                        </tr>
+                        <tr>
+                            <td>Suivi/relance</td>
+                            <td>Oublis fréquents</td>
+                            <td>Automation systématique</td>
+                            <td>0 oubli</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <p><strong>Impact PME :</strong> Une personne peut prospecter 300-500 contacts/semaine vs 50 avant.</p>
+            </section>
+
+            <!-- Section 12: Architecture d'agents IA -->
+            <section id="section-12">
+                <h2>Architecture d'Agents IA Spécialisés</h2>
+
+                <h3>Vue d'ensemble du système multi-agents</h3>
+
+                <pre>SOURCES EXTERNES                    AGENTS IA                           HUMAIN
+==================                  =========                           ======
+
+LinkedIn API        ──┐
+Apollo.io API       ──┤
+BOAMP API           ──┼──→  [1. VEILLEUR]  ──→  [2. ENRICHISSEUR]  ──→  [3. SCOREUR]
+Job Boards          ──┤         │                      │                     │
+BuiltWith/Wappalyzer──┘    Détecte signaux       Enrichit données      Score prospects
+                           + nouveaux leads       (email, phone,        (hot/warm/cold)
+                                                  stack, intent)             │
+                                                                        (si HOT)
+                                                                            │
+                                                                            ▼
+    [7. ANALYSTE]  ←──  [6. NURTUREUR]  ←──  [5. SUIVEUR]  ←──  [4. RÉDACTEUR]
+         │                    │                    │                    │
+    Rapporte KPIs       Nurture les           Gère relances       Rédige emails
+    et recommande       WARM/COLD             et sequences        + messages LI
+    ajustements         via contenu           multicanales        personnalisés</pre>
+
+                <h3>Les 7 agents spécialisés</h3>
+
+                <details>
+                    <summary>Agent 1 — Veilleur (Détection & Collecte)</summary>
+                    <p><strong>Mission :</strong> Détecter en continu les opportunités de prospection</p>
+                    <p><strong>Sous-agents :</strong></p>
+                    <ul>
+                        <li><strong>1a. Veilleur LinkedIn :</strong> Monitore changements de poste, recrutements, posts pertinents</li>
+                        <li><strong>1b. Veilleur Marchés Publics :</strong> Scrape BOAMP, France Marchés, filtre par mots-clés IT</li>
+                        <li><strong>1c. Veilleur Signaux Web :</strong> Détecte sites lents, non conformes RGAA, tech obsolète</li>
+                        <li><strong>1d. Veilleur Job Boards :</strong> Détecte offres "dev web" = besoin non satisfait</li>
+                    </ul>
+                    <p><strong>Input :</strong> APIs LinkedIn, BOAMP, BuiltWith, job boards</p>
+                    <p><strong>Output :</strong> Liste de leads bruts avec signal détecté</p>
+                    <p><strong>Fréquence :</strong> Quotidien (marchés), continu (signaux LinkedIn)</p>
+                    <p><strong>Outils :</strong> n8n, Apollo API, Warmly, scraping custom</p>
+                </details>
+
+                <details>
+                    <summary>Agent 2 — Enrichisseur (Données & Context)</summary>
+                    <p><strong>Mission :</strong> Transformer chaque lead brut en fiche prospect complète</p>
+                    <p><strong>Sous-agents :</strong></p>
+                    <ul>
+                        <li><strong>2a. Enrichisseur Contact :</strong> Trouve email, téléphone, profil LinkedIn</li>
+                        <li><strong>2b. Enrichisseur Entreprise :</strong> CA, effectif, secteur, stack tech, actualités</li>
+                        <li><strong>2c. Enrichisseur Intent :</strong> Signaux d'intention (visites site, engagement LinkedIn, hiring)</li>
+                    </ul>
+                    <p><strong>Input :</strong> Lead brut du Veilleur</p>
+                    <p><strong>Output :</strong> Fiche prospect enrichie (15+ champs)</p>
+                    <p><strong>Outils :</strong> Apollo.io API, Clay API, Hunter.io, BuiltWith, Clearbit</p>
+                </details>
+
+                <details>
+                    <summary>Agent 3 — Scoreur (Qualification & Priorité)</summary>
+                    <p><strong>Mission :</strong> Attribuer un score à chaque prospect et prioriser</p>
+                    <p><strong>Logique :</strong></p>
+                    <pre>Score = ICP_match(30) + Signal_intent(25) + Engagement(15)
+      + Visit_site(20) + Budget_estime(10)
+
+Si score > 70 → HOT → envoyer au RÉDACTEUR immédiatement
+Si score 40-70 → WARM → séquence multicanale standard
+Si score < 40 → COLD → nurturing long terme</pre>
+                    <p><strong>Input :</strong> Fiche enrichie du ENRICHISSEUR</p>
+                    <p><strong>Output :</strong> Prospect score + catégorie (HOT/WARM/COLD)</p>
+                    <p><strong>Outils :</strong> Règles custom dans n8n, ou ML simple (régression logistique)</p>
+                </details>
+
+                <details>
+                    <summary>Agent 4 — Rédacteur (Personnalisation & Outreach)</summary>
+                    <p><strong>Mission :</strong> Rédiger le premier contact personnalisé (email + message LinkedIn)</p>
+                    <p><strong>Sous-agents :</strong></p>
+                    <ul>
+                        <li><strong>4a. Rédacteur Email :</strong> Draft email personnalisé (framework Challenger Sale)</li>
+                        <li><strong>4b. Rédacteur LinkedIn :</strong> Draft note connexion + message post-connexion</li>
+                        <li><strong>4c. Rédacteur Vidéo :</strong> Script pour vidéo Loom personnalisée (si prospect HOT)</li>
+                        <li><strong>4d. Rédacteur Marché Public :</strong> Pré-analyse AO, recommandation GO/NO-GO</li>
+                    </ul>
+                    <p><strong>Input :</strong> Fiche prospect scorée + template adapté au segment</p>
+                    <p><strong>Output :</strong> Draft prêt à envoyer (ou envoyé automatiquement si WARM)</p>
+                    <p><strong>Outils :</strong> Claude API, templates paramétrés, La Growth Machine</p>
+                </details>
+
+                <details>
+                    <summary>Agent 5 — Suiveur (Sequences & Relances)</summary>
+                    <p><strong>Mission :</strong> Gérer les séquences multicanales et les relances automatiques</p>
+                    <p><strong>Logique :</strong></p>
+                    <pre>J0 : LinkedIn connexion (AGENT 4 draft)
+J2 : Email (si pas de réponse LinkedIn)
+J5 : Engagement LinkedIn (liker 2-3 posts)
+J8 : 2e email (angle différent)
+J14 : Dernière relance LinkedIn
+J21 : Break-up message (dernier essai)</pre>
+                    <p><strong>Input :</strong> Prospect en séquence active</p>
+                    <p><strong>Output :</strong> Suivi du statut (pas de réponse / réponse / RDV / refusé)</p>
+                    <p><strong>Escalade :</strong> Si réponse positive → notifier Jonathan pour prise en charge humaine</p>
+                    <p><strong>Outils :</strong> La Growth Machine, Apollo sequences, Pipedrive automation</p>
+                </details>
+
+                <details>
+                    <summary>Agent 6 — Nurtureur (Engagement Long Terme)</summary>
+                    <p><strong>Mission :</strong> Maintenir le contact avec les prospects WARM et COLD</p>
+                    <p><strong>Actions :</strong></p>
+                    <ul>
+                        <li>Email mensuel : contenu pertinent (blog, case study, insight)</li>
+                        <li>Engagement LinkedIn : liker/commenter les posts du prospect</li>
+                        <li>Re-scoring trimestriel : vérifier si signaux ont changé</li>
+                        <li>Déclenchement : si signal détecté → repasser en HOT</li>
+                    </ul>
+                    <p><strong>Input :</strong> Prospects WARM/COLD non convertis</p>
+                    <p><strong>Output :</strong> Prospects "réchauffés" remontés en priorité</p>
+                    <p><strong>Outils :</strong> ActiveCampaign/HubSpot email, n8n triggers</p>
+                </details>
+
+                <details>
+                    <summary>Agent 7 — Analyste (Reporting & Optimisation)</summary>
+                    <p><strong>Mission :</strong> Mesurer la performance de chaque étape et recommander des ajustements</p>
+                    <p><strong>Métriques suivies :</strong></p>
+                    <ul>
+                        <li>Taux de réponse par canal et par template</li>
+                        <li>Conversion par étape du funnel</li>
+                        <li>CAC par segment et par canal</li>
+                        <li>ROI par campagne</li>
+                        <li>Pipeline value et prévisions</li>
+                    </ul>
+                    <p><strong>Output :</strong> Dashboard hebdomadaire + recommandations d'optimisation</p>
+                    <p><strong>Outils :</strong> Pipedrive dashboard, Google Sheets, n8n aggregation</p>
+                </details>
+
+                <h3>Stack technique des agents</h3>
+
+                <pre>ORCHESTRATION
+├─ n8n Cloud (50 EUR/mois) — workflow automation, API calls, scheduling
+├─ Make (10 EUR/mois) — workflows simples complémentaires
+
+INTELLIGENCE
+├─ Claude API (Anthropic) — rédaction emails, analyse documents, personnalisation
+├─ Apollo.io API — enrichissement contacts, sequences email
+
+DONNÉES
+├─ Airtable (20 EUR/mois) — base de données prospects, scoring, historique
+├─ PostgreSQL (self-hosted) — données structurées si volume important
+
+CANAUX
+├─ La Growth Machine API — orchestration multicanale
+├─ LinkedIn API (via Sales Navigator) — outreach LinkedIn
+├─ Gmail API — envoi emails
+
+MONITORING
+├─ Pipedrive — pipeline CRM, suivi deals
+├─ Warmly.ai — intent tracking visiteurs site</pre>
+            </section>
+
+            <!-- Section 13: Métriques & KPIs -->
+            <section id="section-13">
+                <h2>Métriques & KPIs</h2>
+
+                <h3>KPIs hebdomadaires</h3>
+
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Métrique</th>
+                            <th>Cible démarrage</th>
+                            <th>Cible croissance</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Emails envoyés</td>
+                            <td>80-100</td>
+                            <td>200-300</td>
+                        </tr>
+                        <tr>
+                            <td>Connexions LinkedIn</td>
+                            <td>30-50</td>
+                            <td>100-150</td>
+                        </tr>
+                        <tr>
+                            <td>RDV bookés</td>
+                            <td>3-5</td>
+                            <td>8-12</td>
+                        </tr>
+                        <tr>
+                            <td>Taux réponse email</td>
+                            <td>5-10%</td>
+                            <td>10-15%</td>
+                        </tr>
+                        <tr>
+                            <td>Taux réponse LinkedIn</td>
+                            <td>15-20%</td>
+                            <td>20-25%</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <h3>KPIs mensuels</h3>
+
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Métrique</th>
+                            <th>Cible démarrage</th>
+                            <th>Cible croissance</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Leads générés</td>
+                            <td>30-60</td>
+                            <td>80-150</td>
+                        </tr>
+                        <tr>
+                            <td>Leads qualifiés (SQL)</td>
+                            <td>5-10</td>
+                            <td>15-25</td>
+                        </tr>
+                        <tr>
+                            <td>Deals closes</td>
+                            <td>1-3</td>
+                            <td>4-8</td>
+                        </tr>
+                        <tr>
+                            <td>CAC</td>
+                            <td>200-500 EUR</td>
+                            <td>100-300 EUR</td>
+                        </tr>
+                        <tr>
+                            <td>Pipeline value</td>
+                            <td>50-150K EUR</td>
+                            <td>200-500K EUR</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <h3>KPIs trimestriels</h3>
+
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Métrique</th>
+                            <th>Cible</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Win rate</td>
+                            <td>20-40%</td>
+                        </tr>
+                        <tr>
+                            <td>Deal size moyen</td>
+                            <td>15-30K EUR</td>
+                        </tr>
+                        <tr>
+                            <td>Revenue close</td>
+                            <td>30-120K EUR</td>
+                        </tr>
+                        <tr>
+                            <td>LTV:CAC ratio</td>
+                            <td>> 4:1</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <h3>Résultats attendus (réalistes)</h3>
+
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-value">100-150</div>
+                        <div class="stat-label">Prospects atteints/mois (M1-2)</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">250-400</div>
+                        <div class="stat-label">Prospects/mois (M3-6)</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">500+</div>
+                        <div class="stat-label">Prospects/mois (M6-12)</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">2-4</div>
+                        <div class="stat-label">Semaines de payback</div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Section 14: Plan d'action -->
+            <section id="section-14">
+                <h2>Plan d'Action</h2>
+
+                <h3>Phase 1 — Fondations (Mois 1-2) — Budget : 150 EUR/mois</h3>
+
+                <h4>Semaine 1</h4>
+                <ul class="checklist">
+                    <li class="checklist-item">
+                        <input type="checkbox" class="checklist-input" id="task1">
+                        <label for="task1" class="checklist-label">Créer compte Apollo.io Basic (49$)</label>
+                    </li>
+                    <li class="checklist-item">
+                        <input type="checkbox" class="checklist-input" id="task2">
+                        <label for="task2" class="checklist-label">Activer LinkedIn Sales Navigator (65 EUR)</label>
+                    </li>
+                    <li class="checklist-item">
+                        <input type="checkbox" class="checklist-input" id="task3">
+                        <label for="task3" class="checklist-label">Installer Pipedrive (28 EUR pour 2 users)</label>
+                    </li>
+                    <li class="checklist-item">
+                        <input type="checkbox" class="checklist-input" id="task4">
+                        <label for="task4" class="checklist-label">Installer Warmly.ai gratuit sur site Axiom</label>
+                    </li>
+                    <li class="checklist-item">
+                        <input type="checkbox" class="checklist-input" id="task5">
+                        <label for="task5" class="checklist-label">Créer alertes BOAMP + France Marchés (gratuit)</label>
+                    </li>
+                </ul>
+
+                <h4>Semaine 2</h4>
+                <ul class="checklist">
+                    <li class="checklist-item">
+                        <input type="checkbox" class="checklist-input" id="task6">
+                        <label for="task6" class="checklist-label">Construire première liste : 200 prospects</label>
+                    </li>
+                    <li class="checklist-item">
+                        <input type="checkbox" class="checklist-input" id="task7">
+                        <label for="task7" class="checklist-label">Écrire 3 templates email personnalisables</label>
+                    </li>
+                    <li class="checklist-item">
+                        <input type="checkbox" class="checklist-input" id="task8">
+                        <label for="task8" class="checklist-label">Optimiser profil LinkedIn Jonathan</label>
+                    </li>
+                    <li class="checklist-item">
+                        <input type="checkbox" class="checklist-input" id="task9">
+                        <label for="task9" class="checklist-label">S'inscrire sur Sortlist + Clutch + GoodFirms</label>
+                    </li>
+                </ul>
+
+                <h4>Semaine 3-4</h4>
+                <ul class="checklist">
+                    <li class="checklist-item">
+                        <input type="checkbox" class="checklist-input" id="task10">
+                        <label for="task10" class="checklist-label">Lancer première campagne : 50 emails/semaine</label>
+                    </li>
+                    <li class="checklist-item">
+                        <input type="checkbox" class="checklist-input" id="task11">
+                        <label for="task11" class="checklist-label">Commencer posts LinkedIn founder-led (3/semaine)</label>
+                    </li>
+                    <li class="checklist-item">
+                        <input type="checkbox" class="checklist-input" id="task12">
+                        <label for="task12" class="checklist-label">Identifier 5 partenaires referral potentiels</label>
+                    </li>
+                </ul>
+
+                <h3>Phase 2 — Amplification (Mois 3-6) — Budget : 400 EUR/mois</h3>
+
+                <ul class="checklist">
+                    <li class="checklist-item">
+                        <input type="checkbox" class="checklist-input" id="task13">
+                        <label for="task13" class="checklist-label">Ajouter La Growth Machine (60 EUR) pour orchestration multicanale</label>
+                    </li>
+                    <li class="checklist-item">
+                        <input type="checkbox" class="checklist-input" id="task14">
+                        <label for="task14" class="checklist-label">Ajouter Waalaxy (19 EUR) pour automation LinkedIn</label>
+                    </li>
+                    <li class="checklist-item">
+                        <input type="checkbox" class="checklist-input" id="task15">
+                        <label for="task15" class="checklist-label">Ajouter Loom Business (15$) pour video prospection</label>
+                    </li>
+                    <li class="checklist-item">
+                        <input type="checkbox" class="checklist-input" id="task16">
+                        <label for="task16" class="checklist-label">Lancer newsletter hebdomadaire</label>
+                    </li>
+                    <li class="checklist-item">
+                        <input type="checkbox" class="checklist-input" id="task17">
+                        <label for="task17" class="checklist-label">Premier webinaire "Audit Performance Web"</label>
+                    </li>
+                    <li class="checklist-item">
+                        <input type="checkbox" class="checklist-input" id="task18">
+                        <label for="task18" class="checklist-label">Répondre à 3-5 MAPA IT cibles</label>
+                    </li>
+                    <li class="checklist-item">
+                        <input type="checkbox" class="checklist-input" id="task19">
+                        <label for="task19" class="checklist-label">Proposer Axiom en sous-traitance aux ESN</label>
+                    </li>
+                    <li class="checklist-item">
+                        <input type="checkbox" class="checklist-input" id="task20">
+                        <label for="task20" class="checklist-label">Lancer podcast bi-mensuel</label>
+                    </li>
+                </ul>
+
+                <h3>Phase 3 — Scaling (Mois 6-12) — Budget : 800-1500 EUR/mois</h3>
+
+                <ul class="checklist">
+                    <li class="checklist-item">
+                        <input type="checkbox" class="checklist-input" id="task21">
+                        <label for="task21" class="checklist-label">Déployer agents IA (n8n + Claude API)</label>
+                    </li>
+                    <li class="checklist-item">
+                        <input type="checkbox" class="checklist-input" id="task22">
+                        <label for="task22" class="checklist-label">Ajouter Clay Growth (349$)</label>
+                    </li>
+                    <li class="checklist-item">
+                        <input type="checkbox" class="checklist-input" id="task23">
+                        <label for="task23" class="checklist-label">Déployer AI SDR pilot</label>
+                    </li>
+                    <li class="checklist-item">
+                        <input type="checkbox" class="checklist-input" id="task24">
+                        <label for="task24" class="checklist-label">Obtenir certification Shopify Partner</label>
+                    </li>
+                    <li class="checklist-item">
+                        <input type="checkbox" class="checklist-input" id="task25">
+                        <label for="task25" class="checklist-label">Lancer partenariats white-label avec 2-3 agences</label>
+                    </li>
+                </ul>
+
+                <h3>Phase 4 — Dominance Inbound (Année 2+) — Budget : 1500+ EUR/mois</h3>
+
+                <ul class="checklist">
+                    <li class="checklist-item">
+                        <input type="checkbox" class="checklist-input" id="task26">
+                        <label for="task26" class="checklist-label">Full SEO intent-based strategy (50+ articles)</label>
+                    </li>
+                    <li class="checklist-item">
+                        <input type="checkbox" class="checklist-input" id="task27">
+                        <label for="task27" class="checklist-label">Lancement SaaS lite</label>
+                    </li>
+                    <li class="checklist-item">
+                        <input type="checkbox" class="checklist-input" id="task28">
+                        <label for="task28" class="checklist-label">Cours en ligne (Udemy, LinkedIn Learning)</label>
+                    </li>
+                    <li class="checklist-item">
+                        <input type="checkbox" class="checklist-input" id="task29">
+                        <label for="task29" class="checklist-label">Candidature awards (Awwwards, CSS Design Awards)</label>
+                    </li>
+                </ul>
+            </section>
+
+            <!-- Section 15: Sources -->
+            <section id="section-15">
+                <h2>Sources</h2>
+
+                <h3>Prospection B2B & Statistiques</h3>
+
+                <ul>
+                    <li><a href="https://www.autobound.ai/blog/b2b-sales-prospecting-guide" target="_blank">Autobound — B2B Sales Prospecting Guide 2026</a></li>
+                    <li><a href="https://leadsatscale.com/insights/10-b2b-prospecting-techniques-for-2025/" target="_blank">Leads at Scale — 10 B2B Prospecting Techniques 2025</a></li>
+                    <li><a href="https://sopro.io/resources/blog/cold-outreach-statistics/" target="_blank">Sopro — 59 Cold Outreach Statistics 2026</a></li>
+                    <li><a href="https://salesmotion.io/blog/cold-outreach-best-practices" target="_blank">Salesmotion — Cold Outreach Playbook 2026</a></li>
+                    <li><a href="https://prospeo.io/s/multi-channel-prospecting-strategy" target="_blank">Prospeo — Multi-Channel Prospecting Strategy 2026</a></li>
+                    <li><a href="https://www.highspot.com/blog/sales-cycle-stages/" target="_blank">Highspot — B2B Sales Cycle Stages 2026</a></li>
+                </ul>
+
+                <h3>LinkedIn & Social Selling</h3>
+
+                <ul>
+                    <li><a href="https://martal.ca/linkedin-statistics-lb/" target="_blank">Martal — LinkedIn Statistics 2026</a></li>
+                    <li><a href="https://belkins.io/blog/linkedin-outreach-study" target="_blank">Belkins — LinkedIn Outreach Study 2025</a></li>
+                    <li><a href="https://hacquisition.fr/prospection-linkedin/exemples" target="_blank">Hacquisition — 40+ Messages LinkedIn 40%+ Réponse</a></li>
+                    <li><a href="https://www.incremys.com/en/resources/blog/linkedin-content-strategy" target="_blank">Incremys — LinkedIn Content Strategy 2026</a></li>
+                    <li><a href="https://www.everything.design/blog/founder-led-linkedin-marketing-playbook-b2b-startups" target="_blank">Everything Design — Founder-Led LinkedIn Marketing Playbook</a></li>
+                </ul>
+
+                <h3>Outils IA & Automation</h3>
+
+                <ul>
+                    <li><a href="https://lagrowthmachine.com/clay-pricing/" target="_blank">LaGrowthMachine — Clay Pricing 2026</a></li>
+                    <li><a href="https://lagrowthmachine.com/apollo-io-review/" target="_blank">LaGrowthMachine — Apollo.io Review 2026</a></li>
+                    <li><a href="https://instantly.ai/blog/future-of-cold-email-ai-personalization-automation-trends-shaping-2026-2027/" target="_blank">Instantly — Cold Email Trends 2026-2027</a></li>
+                    <li><a href="https://www.warmly.ai/p/blog/intent-data" target="_blank">Warmly — Intent Data Guide 2026</a></li>
+                    <li><a href="https://www.warmly.ai/p/blog/ai-lead-scoring" target="_blank">Warmly — AI Lead Scoring 2026</a></li>
+                </ul>
+
+                <h3>AI SDR & Agents</h3>
+
+                <ul>
+                    <li><a href="https://www.landbase.com/blog/top-ai-sdr-platforms-in-2025" target="_blank">Landbase — Top AI SDR Platforms 2026</a></li>
+                    <li><a href="https://www.qualified.com/ai-sdr-agents" target="_blank">Qualified — AI SDR Agents Explained</a></li>
+                    <li><a href="https://getbreakout.ai/blog/10-best-ai-sdr-agents-2025" target="_blank">Getbreakout — 10 Best AI SDR Agents 2025</a></li>
+                    <li><a href="https://monday.com/blog/crm-and-sales/ai-outreach-agents/" target="_blank">Monday.com — AI Outreach Agents 2026</a></li>
+                </ul>
+
+                <h3>Marchés Publics & Secteur Public</h3>
+
+                <ul>
+                    <li><a href="https://www.boamp.fr/" target="_blank">BOAMP</a></li>
+                    <li><a href="https://www.francemarches.com/fiches/seuils" target="_blank">France Marchés — Seuils 2026</a></li>
+                    <li><a href="https://www.code-commande-publique.com/nouveaux-seuils-2026-pour-la-passation-des-marches/" target="_blank">Code Commande Publique — Nouveaux seuils 2026</a></li>
+                    <li><a href="https://design.numerique.gouv.fr/articles/2026-03-02-rgaa5/" target="_blank">Design.gouv — RGAA 5</a></li>
+                </ul>
+
+                <h3>Concurrents & Marché</h3>
+
+                <ul>
+                    <li><a href="https://www.newlions.fr/" target="_blank">Newlions</a></li>
+                    <li><a href="https://alba.re/" target="_blank">Alba</a></li>
+                    <li><a href="https://doublea.io/" target="_blank">Double A</a></li>
+                    <li><a href="https://www.bdc-com.com/" target="_blank">BDC Web</a></li>
+                    <li><a href="https://www.yieldstudio.fr/" target="_blank">Yield Studio</a></li>
+                    <li><a href="https://galadrim.fr/" target="_blank">Galadrim</a></li>
+                    <li><a href="https://digitalunicorn.fr/" target="_blank">Digital Unicorn</a></li>
+                </ul>
+
+                <h3>Frameworks & Méthodologies</h3>
+
+                <ul>
+                    <li><a href="https://www.gong.io/blog/sales-methodologies" target="_blank">Gong — Top 12 Sales Methodologies</a></li>
+                    <li><a href="https://www.webfx.com/blog/ppc/account-based-marketing-statistics/" target="_blank">WebFX — 40+ ABM Statistics 2025</a></li>
+                    <li><a href="https://www.deeto.com/blog-post/b2b-referral-marketing-program" target="_blank">Deeto — B2B Referral Program Guide</a></li>
+                    <li><a href="https://seoprofy.com/blog/seo-roi-statistics/" target="_blank">SeoProfy — SEO ROI Statistics 2025-2026</a></li>
+                    <li><a href="https://usermaven.com/blog/average-customer-acquisition-cost" target="_blank">UserMaven — Average CAC by Industry 2026</a></li>
+                </ul>
+            </section>
+        </main>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <p>
+            <strong>Recherche complétée le 18 mars 2026</strong><br>
+            6 agents parallèles • 100+ sources • 50+ outils analysés<br>
+            <em>Document de référence pour la construction du système de prospection Axiom Marketing</em>
+        </p>
+        <p style="margin-top: 20px; font-size: 0.85rem;">
+            © 2026 Axiom Marketing / UNIVILE SAS — Tous droits réservés
+        </p>
+    </footer>
+
+    <!-- Script pour les checkboxes -->
+    <script>
+        const checkboxes = document.querySelectorAll('.checklist-input');
+        checkboxes.forEach(checkbox => {
+            checkbox.addEventListener('change', () => {
+                const item = checkbox.parentElement;
+                if (checkbox.checked) {
+                    item.style.opacity = '0.6';
+                    checkbox.parentElement.querySelector('.checklist-label').style.textDecoration = 'line-through';
+                } else {
+                    item.style.opacity = '1';
+                    checkbox.parentElement.querySelector('.checklist-label').style.textDecoration = 'none';
+                }
+                // Sauvegarder dans localStorage
+                const checkedBoxes = Array.from(checkboxes)
+                    .filter(cb => cb.checked)
+                    .map(cb => cb.id);
+                localStorage.setItem('axiom-checkboxes', JSON.stringify(checkedBoxes));
+            });
+        });
+
+        // Restaurer les checkboxes cochées depuis localStorage
+        const savedChecks = JSON.parse(localStorage.getItem('axiom-checkboxes') || '[]');
+        savedChecks.forEach(id => {
+            const checkbox = document.getElementById(id);
+            if (checkbox) {
+                checkbox.checked = true;
+                checkbox.dispatchEvent(new Event('change'));
+            }
+        });
+    </script>
+</body>
+</html>

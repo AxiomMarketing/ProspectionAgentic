@@ -17,7 +17,9 @@ export interface GeneratedMessageProps {
 export class GeneratedMessage {
   private constructor(private readonly props: GeneratedMessageProps) {}
 
-  static create(params: Omit<GeneratedMessageProps, 'id' | 'isApproved' | 'createdAt'>): GeneratedMessage {
+  static create(
+    params: Omit<GeneratedMessageProps, 'id' | 'isApproved' | 'createdAt'>,
+  ): GeneratedMessage {
     return new GeneratedMessage({
       ...params,
       id: crypto.randomUUID(),
@@ -30,23 +32,51 @@ export class GeneratedMessage {
     return new GeneratedMessage(props);
   }
 
-  get id(): string { return this.props.id; }
-  get prospectId(): string { return this.props.prospectId; }
-  get templateId(): string | undefined { return this.props.templateId; }
-  get channel(): string { return this.props.channel; }
-  get subject(): string { return this.props.subject; }
-  get body(): string { return this.props.body; }
-  get modelUsed(): string { return this.props.modelUsed; }
-  get promptTokens(): number { return this.props.promptTokens; }
-  get completionTokens(): number { return this.props.completionTokens; }
-  get costEur(): number { return this.props.costEur; }
-  get generationMs(): number { return this.props.generationMs; }
-  get isApproved(): boolean { return this.props.isApproved; }
-  get createdAt(): Date { return this.props.createdAt; }
+  get id(): string {
+    return this.props.id;
+  }
+  get prospectId(): string {
+    return this.props.prospectId;
+  }
+  get templateId(): string | undefined {
+    return this.props.templateId;
+  }
+  get channel(): string {
+    return this.props.channel;
+  }
+  get subject(): string {
+    return this.props.subject;
+  }
+  get body(): string {
+    return this.props.body;
+  }
+  get modelUsed(): string {
+    return this.props.modelUsed;
+  }
+  get promptTokens(): number {
+    return this.props.promptTokens;
+  }
+  get completionTokens(): number {
+    return this.props.completionTokens;
+  }
+  get costEur(): number {
+    return this.props.costEur;
+  }
+  get generationMs(): number {
+    return this.props.generationMs;
+  }
+  get isApproved(): boolean {
+    return this.props.isApproved;
+  }
+  get createdAt(): Date {
+    return this.props.createdAt;
+  }
 
   approve(): GeneratedMessage {
     return new GeneratedMessage({ ...this.props, isApproved: true });
   }
 
-  toPlainObject(): GeneratedMessageProps { return { ...this.props }; }
+  toPlainObject(): GeneratedMessageProps {
+    return { ...this.props };
+  }
 }

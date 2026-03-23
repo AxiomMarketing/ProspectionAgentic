@@ -1,6 +1,9 @@
 import { Controller, Get, Post, Body, Param } from '@nestjs/common';
 import { EnrichisseurService } from '../../application/services/enrichisseur.service';
-import { EnrichProspectSchema, EnrichProspectDto } from '../../application/dtos/enrich-prospect.dto';
+import {
+  EnrichProspectSchema,
+  EnrichProspectDto,
+} from '../../application/dtos/enrich-prospect.dto';
 import { ZodValidationPipe } from '@common/pipes/zod-validation.pipe';
 
 @Controller('api/agents/enrichisseur')

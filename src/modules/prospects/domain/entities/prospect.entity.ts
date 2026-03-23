@@ -41,7 +41,16 @@ export class Prospect {
   private constructor(private readonly props: ProspectProps) {}
 
   static create(
-    params: Omit<ProspectProps, 'id' | 'status' | 'createdAt' | 'updatedAt' | 'emailVerified' | 'isDecisionMaker' | 'consentGiven'>,
+    params: Omit<
+      ProspectProps,
+      | 'id'
+      | 'status'
+      | 'createdAt'
+      | 'updatedAt'
+      | 'emailVerified'
+      | 'isDecisionMaker'
+      | 'consentGiven'
+    >,
   ): Prospect {
     return new Prospect({
       id: crypto.randomUUID(),
@@ -59,12 +68,24 @@ export class Prospect {
     return new Prospect(props);
   }
 
-  get id(): string { return this.props.id; }
-  get email(): string | undefined { return this.props.email; }
-  get companyName(): string | undefined { return this.props.companyName; }
-  get status(): ProspectStatus { return this.props.status; }
-  get fullName(): string | undefined { return this.props.fullName; }
-  get createdAt(): Date { return this.props.createdAt; }
+  get id(): string {
+    return this.props.id;
+  }
+  get email(): string | undefined {
+    return this.props.email;
+  }
+  get companyName(): string | undefined {
+    return this.props.companyName;
+  }
+  get status(): ProspectStatus {
+    return this.props.status;
+  }
+  get fullName(): string | undefined {
+    return this.props.fullName;
+  }
+  get createdAt(): Date {
+    return this.props.createdAt;
+  }
 
   updateStatus(status: ProspectStatus): Prospect {
     return new Prospect({ ...this.props, status, updatedAt: new Date() });
@@ -80,5 +101,7 @@ export class Prospect {
     });
   }
 
-  toPlainObject(): ProspectProps { return { ...this.props }; }
+  toPlainObject(): ProspectProps {
+    return { ...this.props };
+  }
 }

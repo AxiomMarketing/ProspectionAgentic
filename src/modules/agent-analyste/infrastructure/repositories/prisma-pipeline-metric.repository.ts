@@ -5,7 +5,9 @@ import { PipelineMetric } from '../../domain/entities/pipeline-metric.entity';
 
 @Injectable()
 export class PrismaPipelineMetricRepository extends IPipelineMetricRepository {
-  constructor(private readonly prisma: PrismaService) { super(); }
+  constructor(private readonly prisma: PrismaService) {
+    super();
+  }
 
   private toDomain(record: any): PipelineMetric {
     return PipelineMetric.reconstitute({
@@ -48,7 +50,11 @@ export class PrismaPipelineMetricRepository extends IPipelineMetricRepository {
     return this.toDomain(record);
   }
 
-  async aggregateByPeriod(metricName: string, from: Date, to: Date): Promise<{ period: string; total: number }[]> {
+  async aggregateByPeriod(
+    metricName: string,
+    from: Date,
+    to: Date,
+  ): Promise<{ period: string; total: number }[]> {
     // TODO: implement GROUP BY period aggregation via raw query
     return [];
   }

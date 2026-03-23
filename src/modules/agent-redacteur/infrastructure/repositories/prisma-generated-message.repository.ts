@@ -6,7 +6,9 @@ import { GeneratedMessage as PrismaGeneratedMessage } from '@prisma/client';
 
 @Injectable()
 export class PrismaGeneratedMessageRepository extends IGeneratedMessageRepository {
-  constructor(private readonly prisma: PrismaService) { super(); }
+  constructor(private readonly prisma: PrismaService) {
+    super();
+  }
 
   private toDomain(record: PrismaGeneratedMessage): GeneratedMessage {
     return GeneratedMessage.reconstitute({

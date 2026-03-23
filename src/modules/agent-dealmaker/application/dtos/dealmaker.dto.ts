@@ -16,11 +16,15 @@ export const GenerateQuoteSchema = z.object({
   title: z.string().min(1),
   amountHtEur: z.number().positive(),
   tvaRate: z.number().min(0).max(1).default(0.2),
-  lineItems: z.array(z.object({
-    description: z.string(),
-    quantity: z.number().positive(),
-    unitPriceEur: z.number().positive(),
-  })).min(1),
+  lineItems: z
+    .array(
+      z.object({
+        description: z.string(),
+        quantity: z.number().positive(),
+        unitPriceEur: z.number().positive(),
+      }),
+    )
+    .min(1),
 });
 
 export type GenerateQuoteDto = z.infer<typeof GenerateQuoteSchema>;

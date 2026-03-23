@@ -6,7 +6,9 @@ import { Quote as PrismaQuote } from '@prisma/client';
 
 @Injectable()
 export class PrismaQuoteRepository extends IQuoteRepository {
-  constructor(private readonly prisma: PrismaService) { super(); }
+  constructor(private readonly prisma: PrismaService) {
+    super();
+  }
 
   private toDomain(record: PrismaQuote): Quote {
     return Quote.reconstitute({

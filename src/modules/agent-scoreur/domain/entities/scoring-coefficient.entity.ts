@@ -28,11 +28,23 @@ export class ScoringCoefficient {
     return new ScoringCoefficient(props);
   }
 
-  get id(): string { return this.props.id; }
-  get name(): string { return this.props.name; }
-  get version(): string { return this.props.version; }
-  get isActive(): boolean { return this.props.isActive; }
-  get coefficients(): ScoringCoefficientWeights { return this.props.coefficients; }
+  get id(): string {
+    return this.props.id;
+  }
+  get name(): string {
+    return this.props.name;
+  }
+  get version(): string {
+    return this.props.version;
+  }
+  get isActive(): boolean {
+    return this.props.isActive;
+  }
+  get coefficients(): ScoringCoefficientWeights {
+    return this.props.coefficients;
+  }
 
-  toPlainObject(): ScoringCoefficientProps { return { ...this.props }; }
+  toPlainObject(): ScoringCoefficientProps {
+    return { ...this.props };
+  }
 }

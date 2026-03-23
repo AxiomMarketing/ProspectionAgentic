@@ -11,13 +11,8 @@ export class AppelsOffresController {
   ) {}
 
   @Post('tenders/:id/analyze')
-  async analyzeTender(
-    @Param('id') id: string,
-    @Body() body: { forceReanalyze?: boolean },
-  ) {
-    return this.commandBus.execute(
-      new AnalyzeTenderCommand(id, body.forceReanalyze ?? false),
-    );
+  async analyzeTender(@Param('id') id: string, @Body() body: { forceReanalyze?: boolean }) {
+    return this.commandBus.execute(new AnalyzeTenderCommand(id, body.forceReanalyze ?? false));
   }
 
   @Get('tenders/:id/analysis')
@@ -25,8 +20,6 @@ export class AppelsOffresController {
     @Param('id') id: string,
     @Query('includeHistory') includeHistory?: string,
   ) {
-    return this.queryBus.execute(
-      new GetTenderAnalysisQuery(id, includeHistory === 'true'),
-    );
+    return this.queryBus.execute(new GetTenderAnalysisQuery(id, includeHistory === 'true'));
   }
 }

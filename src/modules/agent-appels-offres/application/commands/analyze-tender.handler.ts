@@ -14,7 +14,11 @@ export class AnalyzeTenderHandler implements ICommandHandler<AnalyzeTenderComman
   ) {}
 
   async execute(command: AnalyzeTenderCommand): Promise<void> {
-    this.logger.log({ msg: 'Analyzing tender DCE', tenderId: command.tenderId, forceReanalyze: command.forceReanalyze });
+    this.logger.log({
+      msg: 'Analyzing tender DCE',
+      tenderId: command.tenderId,
+      forceReanalyze: command.forceReanalyze,
+    });
     // TODO: Implement DCE analysis logic using llmAdapter
   }
 }

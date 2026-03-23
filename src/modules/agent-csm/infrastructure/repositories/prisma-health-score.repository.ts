@@ -6,7 +6,9 @@ import { CustomerHealthScore as PrismaHealthScore } from '@prisma/client';
 
 @Injectable()
 export class PrismaHealthScoreRepository extends IHealthScoreRepository {
-  constructor(private readonly prisma: PrismaService) { super(); }
+  constructor(private readonly prisma: PrismaService) {
+    super();
+  }
 
   private toDomain(record: PrismaHealthScore): HealthScore {
     return HealthScore.reconstitute({

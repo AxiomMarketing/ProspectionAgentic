@@ -19,7 +19,11 @@ export class RedacteurService {
   ) {}
 
   async generateMessage(dto: GenerateMessageDto): Promise<GeneratedMessage> {
-    this.logger.log({ msg: 'Generating message', prospectId: dto.prospectId, channel: dto.channel });
+    this.logger.log({
+      msg: 'Generating message',
+      prospectId: dto.prospectId,
+      channel: dto.channel,
+    });
 
     const startMs = Date.now();
 
@@ -36,7 +40,8 @@ export class RedacteurService {
     });
 
     const generationMs = Date.now() - startMs;
-    const costEur = response.inputTokens * EUR_PER_INPUT_TOKEN + response.outputTokens * EUR_PER_OUTPUT_TOKEN;
+    const costEur =
+      response.inputTokens * EUR_PER_INPUT_TOKEN + response.outputTokens * EUR_PER_OUTPUT_TOKEN;
 
     const subject = dto.channel === 'email' ? 'Proposition de partenariat' : '';
     const message = GeneratedMessage.create({
@@ -53,9 +58,18 @@ export class RedacteurService {
     });
 
     const saved = await this.generatedMessageRepository.save(message);
-    this.eventEmitter.emit('message.generated', { prospectId: dto.prospectId, messageId: saved.id, channel: dto.channel });
+    this.eventEmitter.emit('message.generated', {
+      prospectId: dto.prospectId,
+      messageId: saved.id,
+      channel: dto.channel,
+    });
 
-    this.logger.log({ msg: 'Message generated', prospectId: dto.prospectId, messageId: saved.id, costEur });
+    this.logger.log({
+      msg: 'Message generated',
+      prospectId: dto.prospectId,
+      messageId: saved.id,
+      costEur,
+    });
     return saved;
   }
 

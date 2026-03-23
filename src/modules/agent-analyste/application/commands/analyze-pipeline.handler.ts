@@ -7,7 +7,11 @@ export class AnalyzePipelineHandler implements ICommandHandler<AnalyzePipelineCo
   private readonly logger = new Logger(AnalyzePipelineHandler.name);
 
   async execute(command: AnalyzePipelineCommand): Promise<void> {
-    this.logger.log({ msg: 'Analyzing pipeline', dateFrom: command.dateFrom, dateTo: command.dateTo });
+    this.logger.log({
+      msg: 'Analyzing pipeline',
+      dateFrom: command.dateFrom,
+      dateTo: command.dateTo,
+    });
     // TODO: Implement pipeline analysis logic
   }
 }

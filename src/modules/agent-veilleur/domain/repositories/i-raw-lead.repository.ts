@@ -7,4 +7,5 @@ export abstract class IRawLeadRepository {
   abstract save(lead: RawLead): Promise<RawLead>;
   abstract update(lead: RawLead): Promise<RawLead>;
   abstract countBySourceSince(source: string, since: Date): Promise<number>;
+  abstract findBySourceUrls(urls: string[]): Promise<RawLead[]>;
 }

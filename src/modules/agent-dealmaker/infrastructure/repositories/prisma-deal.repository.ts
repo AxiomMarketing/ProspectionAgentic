@@ -6,7 +6,9 @@ import { DealCrm as PrismaDeal } from '@prisma/client';
 
 @Injectable()
 export class PrismaDealRepository extends IDealRepository {
-  constructor(private readonly prisma: PrismaService) { super(); }
+  constructor(private readonly prisma: PrismaService) {
+    super();
+  }
 
   private toDomain(record: PrismaDeal): Deal {
     return Deal.reconstitute({

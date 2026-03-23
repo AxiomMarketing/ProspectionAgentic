@@ -9,9 +9,7 @@ import { PrismaQuoteRepository } from './infrastructure/repositories/prisma-quot
 import { QUEUE_NAMES } from '@shared/constants/queue-names.constant';
 
 @Module({
-  imports: [
-    BullModule.registerQueue({ name: QUEUE_NAMES.DEALMAKER_PIPELINE }),
-  ],
+  imports: [BullModule.registerQueue({ name: QUEUE_NAMES.DEALMAKER_PIPELINE })],
   controllers: [DealmakerController],
   providers: [
     DealmakerService,

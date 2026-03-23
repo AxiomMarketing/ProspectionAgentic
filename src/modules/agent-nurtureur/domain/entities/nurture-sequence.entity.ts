@@ -29,14 +29,30 @@ export class NurtureSequence {
     return new NurtureSequence(props);
   }
 
-  get id(): string { return this.props.id; }
-  get prospectId(): string { return this.props.prospectId; }
-  get entryReason(): string { return this.props.entryReason; }
-  get entryDate(): Date { return this.props.entryDate; }
-  get status(): NurtureStatus { return this.props.status; }
-  get reactivatedAt(): Date | undefined { return this.props.reactivatedAt; }
-  get exitReason(): string | undefined { return this.props.exitReason; }
-  get tags(): string[] { return [...this.props.tags]; }
+  get id(): string {
+    return this.props.id;
+  }
+  get prospectId(): string {
+    return this.props.prospectId;
+  }
+  get entryReason(): string {
+    return this.props.entryReason;
+  }
+  get entryDate(): Date {
+    return this.props.entryDate;
+  }
+  get status(): NurtureStatus {
+    return this.props.status;
+  }
+  get reactivatedAt(): Date | undefined {
+    return this.props.reactivatedAt;
+  }
+  get exitReason(): string | undefined {
+    return this.props.exitReason;
+  }
+  get tags(): string[] {
+    return [...this.props.tags];
+  }
 
   pause(): NurtureSequence {
     return new NurtureSequence({ ...this.props, status: 'paused' });
@@ -50,5 +66,7 @@ export class NurtureSequence {
     return new NurtureSequence({ ...this.props, status: 'exited', exitReason: reason });
   }
 
-  toPlainObject(): NurtureSequenceProps { return { ...this.props, tags: [...this.props.tags] }; }
+  toPlainObject(): NurtureSequenceProps {
+    return { ...this.props, tags: [...this.props.tags] };
+  }
 }

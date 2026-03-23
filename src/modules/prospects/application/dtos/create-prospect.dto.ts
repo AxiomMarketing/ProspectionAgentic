@@ -7,7 +7,10 @@ export const CreateProspectSchema = z.object({
   phone: z.string().optional(),
   linkedinUrl: z.string().url().optional(),
   companyName: z.string().optional(),
-  companySiren: z.string().regex(/^\d{9}$/).optional(),
+  companySiren: z
+    .string()
+    .regex(/^\d{9}$/)
+    .optional(),
   companyWebsite: z.string().url().optional(),
   jobTitle: z.string().optional(),
   seniorityLevel: z.string().optional(),

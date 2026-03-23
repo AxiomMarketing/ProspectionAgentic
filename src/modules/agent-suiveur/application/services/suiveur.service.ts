@@ -16,7 +16,11 @@ export class SuiveurService {
   ) {}
 
   async executeSequenceStep(dto: ExecuteStepDto): Promise<MessageSend> {
-    this.logger.log({ msg: 'Executing sequence step', prospectId: dto.prospectId, sequenceId: dto.sequenceId });
+    this.logger.log({
+      msg: 'Executing sequence step',
+      prospectId: dto.prospectId,
+      sequenceId: dto.sequenceId,
+    });
 
     // TODO: fetch sequence step config and prospect contact data
     // TODO: fetch generated message for this step
@@ -47,8 +51,15 @@ export class SuiveurService {
       const sent = saved.markAsSent();
       const updated = await this.messageSendRepository.updateStatus(sent);
 
-      this.eventEmitter.emit('message.sent', { prospectId: dto.prospectId, messageSendId: updated.id });
-      this.logger.log({ msg: 'Sequence step executed', prospectId: dto.prospectId, messageSendId: updated.id });
+      this.eventEmitter.emit('message.sent', {
+        prospectId: dto.prospectId,
+        messageSendId: updated.id,
+      });
+      this.logger.log({
+        msg: 'Sequence step executed',
+        prospectId: dto.prospectId,
+        messageSendId: updated.id,
+      });
 
       return updated;
     } catch (error) {

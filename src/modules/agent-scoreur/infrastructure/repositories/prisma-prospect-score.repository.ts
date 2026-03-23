@@ -6,7 +6,9 @@ import { ProspectScore as PrismaProspectScore } from '@prisma/client';
 
 @Injectable()
 export class PrismaProspectScoreRepository extends IProspectScoreRepository {
-  constructor(private readonly prisma: PrismaService) { super(); }
+  constructor(private readonly prisma: PrismaService) {
+    super();
+  }
 
   private toDomain(record: PrismaProspectScore): ProspectScore {
     return ProspectScore.reconstitute({

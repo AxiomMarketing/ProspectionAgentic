@@ -1,6 +1,11 @@
 import { Controller, Get, Post, Put, Delete, Body, Param, Query } from '@nestjs/common';
 import { ProspectService } from '../../application/services/prospect.service';
-import { CreateProspectSchema, CreateProspectDto, UpdateProspectSchema, UpdateProspectDto } from '../../application/dtos/create-prospect.dto';
+import {
+  CreateProspectSchema,
+  CreateProspectDto,
+  UpdateProspectSchema,
+  UpdateProspectDto,
+} from '../../application/dtos/create-prospect.dto';
 import { ZodValidationPipe } from '@common/pipes/zod-validation.pipe';
 import { UuidParamSchema } from '@shared/dtos/id-param.dto';
 import { Roles } from '@common/decorators/roles.decorator';
@@ -25,7 +30,10 @@ export class ProspectController {
   }
 
   @Put(':id')
-  async update(@Param('id') id: string, @Body(new ZodValidationPipe(UpdateProspectSchema)) dto: UpdateProspectDto) {
+  async update(
+    @Param('id') id: string,
+    @Body(new ZodValidationPipe(UpdateProspectSchema)) dto: UpdateProspectDto,
+  ) {
     return this.prospectService.update(id, dto);
   }
 

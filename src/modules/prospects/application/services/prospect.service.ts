@@ -1,5 +1,8 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { IProspectRepository, ProspectFilter } from '../../domain/repositories/i-prospect.repository';
+import {
+  IProspectRepository,
+  ProspectFilter,
+} from '../../domain/repositories/i-prospect.repository';
 import { Prospect } from '../../domain/entities/prospect.entity';
 import { CreateProspectDto, UpdateProspectDto } from '../dtos/create-prospect.dto';
 import { ProspectNotFoundException } from '@common/exceptions/prospect-not-found.exception';
@@ -29,7 +32,11 @@ export class ProspectService {
 
   async update(id: string, dto: UpdateProspectDto): Promise<Prospect> {
     const existing = await this.findById(id);
-    const updated = Prospect.reconstitute({ ...existing.toPlainObject(), ...dto, updatedAt: new Date() });
+    const updated = Prospect.reconstitute({
+      ...existing.toPlainObject(),
+      ...dto,
+      updatedAt: new Date(),
+    });
     return this.prospectRepository.update(updated);
   }
 

@@ -6,7 +6,9 @@ import { RawLead as PrismaRawLead } from '@prisma/client';
 
 @Injectable()
 export class PrismaRawLeadRepository extends IRawLeadRepository {
-  constructor(private readonly prisma: PrismaService) { super(); }
+  constructor(private readonly prisma: PrismaService) {
+    super();
+  }
 
   private toDomain(record: PrismaRawLead): RawLead {
     return RawLead.reconstitute({
@@ -71,5 +73,13 @@ export class PrismaRawLeadRepository extends IRawLeadRepository {
 
   async countBySourceSince(source: string, since: Date): Promise<number> {
     return this.prisma.rawLead.count({ where: { source, createdAt: { gte: since } } });
+  }
+
+  async findBySourceUrls(urls: string[]): Promise<RawLead[]> {
+    if (urls.length === 0) return [];
+    const records = await this.prisma.rawLead.findMany({
+      where: { sourceUrl: { in: urls } },
+    });
+    return records.map((r) => this.toDomain(r));
   }
 }

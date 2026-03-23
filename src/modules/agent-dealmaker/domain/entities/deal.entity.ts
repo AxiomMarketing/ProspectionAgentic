@@ -32,7 +32,12 @@ export interface DealProps {
 export class Deal {
   private constructor(private readonly props: DealProps) {}
 
-  static create(params: Pick<DealProps, 'prospectId' | 'title' | 'amountEur' | 'probability' | 'expectedCloseDate'>): Deal {
+  static create(
+    params: Pick<
+      DealProps,
+      'prospectId' | 'title' | 'amountEur' | 'probability' | 'expectedCloseDate'
+    >,
+  ): Deal {
     const now = new Date();
     return new Deal({
       ...params,
@@ -48,20 +53,48 @@ export class Deal {
     return new Deal(props);
   }
 
-  get id(): string { return this.props.id; }
-  get prospectId(): string { return this.props.prospectId; }
-  get customerId(): string | undefined { return this.props.customerId; }
-  get title(): string { return this.props.title; }
-  get stage(): DealStage { return this.props.stage; }
-  get amountEur(): number | undefined { return this.props.amountEur; }
-  get probability(): number | undefined { return this.props.probability; }
-  get expectedCloseDate(): Date | undefined { return this.props.expectedCloseDate; }
-  get closedAt(): Date | undefined { return this.props.closedAt; }
-  get wonReason(): string | undefined { return this.props.wonReason; }
-  get lostReason(): string | undefined { return this.props.lostReason; }
-  get stageHistory(): StageHistoryEntry[] { return [...this.props.stageHistory]; }
-  get createdAt(): Date { return this.props.createdAt; }
-  get updatedAt(): Date { return this.props.updatedAt; }
+  get id(): string {
+    return this.props.id;
+  }
+  get prospectId(): string {
+    return this.props.prospectId;
+  }
+  get customerId(): string | undefined {
+    return this.props.customerId;
+  }
+  get title(): string {
+    return this.props.title;
+  }
+  get stage(): DealStage {
+    return this.props.stage;
+  }
+  get amountEur(): number | undefined {
+    return this.props.amountEur;
+  }
+  get probability(): number | undefined {
+    return this.props.probability;
+  }
+  get expectedCloseDate(): Date | undefined {
+    return this.props.expectedCloseDate;
+  }
+  get closedAt(): Date | undefined {
+    return this.props.closedAt;
+  }
+  get wonReason(): string | undefined {
+    return this.props.wonReason;
+  }
+  get lostReason(): string | undefined {
+    return this.props.lostReason;
+  }
+  get stageHistory(): StageHistoryEntry[] {
+    return [...this.props.stageHistory];
+  }
+  get createdAt(): Date {
+    return this.props.createdAt;
+  }
+  get updatedAt(): Date {
+    return this.props.updatedAt;
+  }
 
   advanceStage(newStage: DealStage): Deal {
     return new Deal({
@@ -85,5 +118,7 @@ export class Deal {
     });
   }
 
-  toPlainObject(): DealProps { return { ...this.props, stageHistory: [...this.props.stageHistory] }; }
+  toPlainObject(): DealProps {
+    return { ...this.props, stageHistory: [...this.props.stageHistory] };
+  }
 }

@@ -9,15 +9,16 @@ export class ApiKeyGuard implements CanActivate {
 
   constructor(private configService: ConfigService) {
     const keys = this.configService.get<string>('INTERNAL_API_KEYS', '');
-    this.validKeys = keys.split(',').map((k) => k.trim()).filter(Boolean);
+    this.validKeys = keys
+      .split(',')
+      .map((k) => k.trim())
+      .filter(Boolean);
   }
 
   canActivate(context: ExecutionContext): boolean {
     const request = context.switchToHttp().getRequest<Request>();
 
-    const apiKey =
-      (request.headers['x-api-key'] as string) ||
-      this.extractBearerToken(request);
+    const apiKey = (request.headers['x-api-key'] as string) || this.extractBearerToken(request);
 
     if (!apiKey) {
       throw new UnauthorizedException('Missing API key');

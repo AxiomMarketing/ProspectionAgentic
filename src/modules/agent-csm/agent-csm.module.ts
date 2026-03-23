@@ -9,9 +9,7 @@ import { PrismaHealthScoreRepository } from './infrastructure/repositories/prism
 import { QUEUE_NAMES } from '@shared/constants/queue-names.constant';
 
 @Module({
-  imports: [
-    BullModule.registerQueue({ name: QUEUE_NAMES.CSM_ONBOARDING }),
-  ],
+  imports: [BullModule.registerQueue({ name: QUEUE_NAMES.CSM_ONBOARDING })],
   controllers: [CsmController],
   providers: [
     CsmService,

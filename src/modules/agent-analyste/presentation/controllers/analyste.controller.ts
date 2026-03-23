@@ -19,8 +19,6 @@ export class AnalysteController {
 
   @Get('metrics')
   async getMetrics(@Query('dateFrom') dateFrom: string, @Query('dateTo') dateTo: string) {
-    return this.queryBus.execute(
-      new GetPipelineMetricsQuery(new Date(dateFrom), new Date(dateTo)),
-    );
+    return this.queryBus.execute(new GetPipelineMetricsQuery(new Date(dateFrom), new Date(dateTo)));
   }
 }

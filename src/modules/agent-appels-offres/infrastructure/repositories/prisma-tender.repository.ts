@@ -6,7 +6,9 @@ import { PublicTender as PrismaTender } from '@prisma/client';
 
 @Injectable()
 export class PrismaTenderRepository extends ITenderRepository {
-  constructor(private readonly prisma: PrismaService) { super(); }
+  constructor(private readonly prisma: PrismaService) {
+    super();
+  }
 
   private toDomain(record: PrismaTender): Tender {
     return Tender.reconstitute({

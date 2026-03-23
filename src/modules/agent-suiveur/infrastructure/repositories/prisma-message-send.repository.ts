@@ -6,7 +6,9 @@ import { EmailSend as PrismaMessageSend } from '@prisma/client';
 
 @Injectable()
 export class PrismaMessageSendRepository extends IMessageSendRepository {
-  constructor(private readonly prisma: PrismaService) { super(); }
+  constructor(private readonly prisma: PrismaService) {
+    super();
+  }
 
   private toDomain(record: PrismaMessageSend): MessageSend {
     return MessageSend.reconstitute({

@@ -26,19 +26,39 @@ export class RawLead {
     return new RawLead(props);
   }
 
-  get id(): string { return this.props.id; }
-  get source(): string { return this.props.source; }
-  get sourceId(): string { return this.props.sourceId; }
-  get sourceUrl(): string | undefined { return this.props.sourceUrl; }
-  get rawData(): Record<string, unknown> { return this.props.rawData; }
-  get processed(): boolean { return this.props.processed; }
-  get processedAt(): Date | undefined { return this.props.processedAt; }
-  get prospectId(): string | undefined { return this.props.prospectId; }
-  get createdAt(): Date { return this.props.createdAt; }
+  get id(): string {
+    return this.props.id;
+  }
+  get source(): string {
+    return this.props.source;
+  }
+  get sourceId(): string {
+    return this.props.sourceId;
+  }
+  get sourceUrl(): string | undefined {
+    return this.props.sourceUrl;
+  }
+  get rawData(): Record<string, unknown> {
+    return this.props.rawData;
+  }
+  get processed(): boolean {
+    return this.props.processed;
+  }
+  get processedAt(): Date | undefined {
+    return this.props.processedAt;
+  }
+  get prospectId(): string | undefined {
+    return this.props.prospectId;
+  }
+  get createdAt(): Date {
+    return this.props.createdAt;
+  }
 
   markAsProcessed(prospectId: string): RawLead {
     return new RawLead({ ...this.props, processed: true, processedAt: new Date(), prospectId });
   }
 
-  toPlainObject(): RawLeadProps { return { ...this.props }; }
+  toPlainObject(): RawLeadProps {
+    return { ...this.props };
+  }
 }

@@ -1,6 +1,11 @@
 import { Controller, Post, Put, Body, Param } from '@nestjs/common';
 import { DealmakerService } from '../../application/services/dealmaker.service';
-import { CreateDealSchema, CreateDealDto, GenerateQuoteSchema, GenerateQuoteDto } from '../../application/dtos/dealmaker.dto';
+import {
+  CreateDealSchema,
+  CreateDealDto,
+  GenerateQuoteSchema,
+  GenerateQuoteDto,
+} from '../../application/dtos/dealmaker.dto';
 import { ZodValidationPipe } from '@common/pipes/zod-validation.pipe';
 import { DealStage } from '../../domain/entities/deal.entity';
 

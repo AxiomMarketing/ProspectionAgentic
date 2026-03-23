@@ -24,7 +24,10 @@ export class DashboardController {
   @Sse('stream')
   stream(): Observable<MessageEvent> {
     return interval(10000).pipe(
-      map(() => ({ data: { type: 'heartbeat', timestamp: new Date().toISOString() } }) as MessageEvent),
+      map(
+        () =>
+          ({ data: { type: 'heartbeat', timestamp: new Date().toISOString() } }) as MessageEvent,
+      ),
     );
   }
 }

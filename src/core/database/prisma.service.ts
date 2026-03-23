@@ -15,7 +15,10 @@ export class PrismaService extends PrismaClient implements OnModuleInit, OnModul
               { emit: 'stdout', level: 'warn' },
               { emit: 'stdout', level: 'error' },
             ]
-          : [{ emit: 'stdout', level: 'warn' }, { emit: 'stdout', level: 'error' }],
+          : [
+              { emit: 'stdout', level: 'warn' },
+              { emit: 'stdout', level: 'error' },
+            ],
     });
   }
 

@@ -1,12 +1,18 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '@core/database/prisma.service';
-import { IProspectRepository, ProspectFilter, PaginatedProspects } from '../../domain/repositories/i-prospect.repository';
+import {
+  IProspectRepository,
+  ProspectFilter,
+  PaginatedProspects,
+} from '../../domain/repositories/i-prospect.repository';
 import { Prospect, ProspectProps } from '../../domain/entities/prospect.entity';
 import { Prospect as PrismaProspect } from '@prisma/client';
 
 @Injectable()
 export class PrismaProspectRepository extends IProspectRepository {
-  constructor(private readonly prisma: PrismaService) { super(); }
+  constructor(private readonly prisma: PrismaService) {
+    super();
+  }
 
   private toDomain(record: PrismaProspect): Prospect {
     return Prospect.reconstitute({
@@ -90,7 +96,9 @@ export class PrismaProspectRepository extends IProspectRepository {
         seniorityLevel: plain.seniorityLevel,
         isDecisionMaker: plain.isDecisionMaker,
         status: plain.status,
-        enrichmentData: plain.enrichmentData as unknown as import('@prisma/client').Prisma.InputJsonValue ?? undefined,
+        enrichmentData:
+          (plain.enrichmentData as unknown as import('@prisma/client').Prisma.InputJsonValue) ??
+          undefined,
         consentGiven: plain.consentGiven,
       },
     });
@@ -109,7 +117,9 @@ export class PrismaProspectRepository extends IProspectRepository {
         phone: plain.phone,
         companyName: plain.companyName,
         status: plain.status,
-        enrichmentData: plain.enrichmentData as unknown as import('@prisma/client').Prisma.InputJsonValue ?? undefined,
+        enrichmentData:
+          (plain.enrichmentData as unknown as import('@prisma/client').Prisma.InputJsonValue) ??
+          undefined,
         enrichedAt: plain.enrichedAt,
       },
     });
@@ -120,7 +130,11 @@ export class PrismaProspectRepository extends IProspectRepository {
     await this.prisma.prospect.delete({ where: { id } });
   }
 
-  async updateScore(id: string, totalScore: number, breakdown?: Record<string, number>): Promise<void> {
+  async updateScore(
+    id: string,
+    totalScore: number,
+    breakdown?: Record<string, number>,
+  ): Promise<void> {
     await this.prisma.prospectScore.create({
       data: {
         prospectId: id,

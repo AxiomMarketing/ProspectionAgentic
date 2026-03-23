@@ -43,29 +43,66 @@ export class Tender {
     return new Tender(props);
   }
 
-  get id(): string { return this.props.id; }
-  get source(): string { return this.props.source; }
-  get sourceId(): string { return this.props.sourceId; }
-  get sourceUrl(): string | undefined { return this.props.sourceUrl; }
-  get title(): string { return this.props.title; }
-  get description(): string | undefined { return this.props.description; }
-  get buyerName(): string | undefined { return this.props.buyerName; }
-  get buyerSiren(): string | undefined { return this.props.buyerSiren; }
-  get publicationDate(): Date | undefined { return this.props.publicationDate; }
-  get deadlineDate(): Date | undefined { return this.props.deadlineDate; }
-  get estimatedAmount(): number | undefined { return this.props.estimatedAmount; }
-  get status(): TenderStatus { return this.props.status; }
-  get dceFitScore(): number | undefined { return this.props.dceFitScore; }
-  get dceAnalyzed(): boolean { return this.props.dceAnalyzed; }
-  get createdAt(): Date { return this.props.createdAt; }
+  get id(): string {
+    return this.props.id;
+  }
+  get source(): string {
+    return this.props.source;
+  }
+  get sourceId(): string {
+    return this.props.sourceId;
+  }
+  get sourceUrl(): string | undefined {
+    return this.props.sourceUrl;
+  }
+  get title(): string {
+    return this.props.title;
+  }
+  get description(): string | undefined {
+    return this.props.description;
+  }
+  get buyerName(): string | undefined {
+    return this.props.buyerName;
+  }
+  get buyerSiren(): string | undefined {
+    return this.props.buyerSiren;
+  }
+  get publicationDate(): Date | undefined {
+    return this.props.publicationDate;
+  }
+  get deadlineDate(): Date | undefined {
+    return this.props.deadlineDate;
+  }
+  get estimatedAmount(): number | undefined {
+    return this.props.estimatedAmount;
+  }
+  get status(): TenderStatus {
+    return this.props.status;
+  }
+  get dceFitScore(): number | undefined {
+    return this.props.dceFitScore;
+  }
+  get dceAnalyzed(): boolean {
+    return this.props.dceAnalyzed;
+  }
+  get createdAt(): Date {
+    return this.props.createdAt;
+  }
 
   markAnalyzed(dceFitScore: number): Tender {
-    return new Tender({ ...this.props, status: TenderStatus.ANALYZED, dceFitScore, dceAnalyzed: true });
+    return new Tender({
+      ...this.props,
+      status: TenderStatus.ANALYZED,
+      dceFitScore,
+      dceAnalyzed: true,
+    });
   }
 
   updateStatus(status: TenderStatus): Tender {
     return new Tender({ ...this.props, status });
   }
 
-  toPlainObject(): TenderProps { return { ...this.props }; }
+  toPlainObject(): TenderProps {
+    return { ...this.props };
+  }
 }

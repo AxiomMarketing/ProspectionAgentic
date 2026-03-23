@@ -60,10 +60,7 @@ async function bootstrap() {
   app.use(urlencoded({ limit: '1mb', extended: true }));
 
   // Global exception filters (order: domain-specific first, then catch-all)
-  app.useGlobalFilters(
-    new GlobalExceptionFilter(),
-    new DomainExceptionFilter(),
-  );
+  app.useGlobalFilters(new GlobalExceptionFilter(), new DomainExceptionFilter());
 
   // Global interceptors (order: logging → transform → timeout)
   app.useGlobalInterceptors(

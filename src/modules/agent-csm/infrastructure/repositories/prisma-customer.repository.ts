@@ -6,7 +6,9 @@ import { Customer as PrismaCustomer } from '@prisma/client';
 
 @Injectable()
 export class PrismaCustomerRepository extends ICustomerRepository {
-  constructor(private readonly prisma: PrismaService) { super(); }
+  constructor(private readonly prisma: PrismaService) {
+    super();
+  }
 
   private toDomain(record: PrismaCustomer): Customer {
     return Customer.reconstitute({

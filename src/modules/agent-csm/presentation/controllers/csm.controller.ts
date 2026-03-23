@@ -1,6 +1,9 @@
 import { Controller, Post, Get, Param, Body } from '@nestjs/common';
 import { CsmService } from '../../application/services/csm.service';
-import { OnboardCustomerSchema, OnboardCustomerDto } from '../../application/dtos/onboard-customer.dto';
+import {
+  OnboardCustomerSchema,
+  OnboardCustomerDto,
+} from '../../application/dtos/onboard-customer.dto';
 import { ZodValidationPipe } from '@common/pipes/zod-validation.pipe';
 
 @Controller('api/agents/csm')
