@@ -6,6 +6,7 @@ import { ICustomerRepository } from './domain/repositories/i-customer.repository
 import { PrismaCustomerRepository } from './infrastructure/repositories/prisma-customer.repository';
 import { IHealthScoreRepository } from './domain/repositories/i-health-score.repository';
 import { PrismaHealthScoreRepository } from './infrastructure/repositories/prisma-health-score.repository';
+import { CsmProcessor } from './infrastructure/jobs/csm.processor';
 import { QUEUE_NAMES } from '@shared/constants/queue-names.constant';
 
 @Module({
@@ -13,6 +14,7 @@ import { QUEUE_NAMES } from '@shared/constants/queue-names.constant';
   controllers: [CsmController],
   providers: [
     CsmService,
+    CsmProcessor,
     { provide: ICustomerRepository, useClass: PrismaCustomerRepository },
     { provide: IHealthScoreRepository, useClass: PrismaHealthScoreRepository },
   ],

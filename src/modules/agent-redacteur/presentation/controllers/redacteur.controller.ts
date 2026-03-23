@@ -17,6 +17,13 @@ export class RedacteurController {
     return this.redacteurService.generateMessage(dto);
   }
 
+  @Post('generate-linkedin')
+  async generateLinkedinMessage(
+    @Body(new ZodValidationPipe(GenerateMessageSchema)) dto: GenerateMessageDto,
+  ) {
+    return this.redacteurService.generateLinkedinMessage(dto);
+  }
+
   @Get('messages/:prospectId')
   async getMessages(@Param('prospectId') prospectId: string) {
     return this.redacteurService.getMessagesByProspectId(prospectId);

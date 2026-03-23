@@ -6,9 +6,10 @@ import { AnalyzeTenderHandler } from './application/commands/analyze-tender.hand
 import { GetTenderAnalysisHandler } from './application/queries/get-tender-analysis.handler';
 import { ITenderRepository } from './domain/repositories/i-tender.repository';
 import { PrismaTenderRepository } from './infrastructure/repositories/prisma-tender.repository';
+import { LlmModule } from '@modules/llm/llm.module';
 
 @Module({
-  imports: [CqrsModule],
+  imports: [CqrsModule, LlmModule],
   controllers: [AppelsOffresController],
   providers: [
     AppelsOffresService,

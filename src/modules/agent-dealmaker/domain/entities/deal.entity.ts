@@ -30,6 +30,15 @@ export interface DealProps {
 }
 
 export class Deal {
+  private static readonly VALID_TRANSITIONS: Record<string, string[]> = {
+    DISCOVERY: ['QUALIFICATION', 'CLOSED_LOST'],
+    QUALIFICATION: ['PROPOSAL', 'CLOSED_LOST'],
+    PROPOSAL: ['NEGOTIATION', 'CLOSED_LOST'],
+    NEGOTIATION: ['CLOSED_WON', 'CLOSED_LOST'],
+    CLOSED_WON: [],
+    CLOSED_LOST: [],
+  };
+
   private constructor(private readonly props: DealProps) {}
 
   static create(
@@ -97,6 +106,10 @@ export class Deal {
   }
 
   advanceStage(newStage: DealStage): Deal {
+    const allowed = Deal.VALID_TRANSITIONS[this.props.stage] ?? [];
+    if (!allowed.includes(newStage)) {
+      throw new Error(`Invalid transition: ${this.props.stage} → ${newStage}`);
+    }
     return new Deal({
       ...this.props,
       stage: newStage,
