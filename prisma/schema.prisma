@@ -1,0 +1,722 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─── Enums ───────────────────────────────────────────────────────────────────
+
+enum ProspectStatus {
+  raw
+  enriched
+  scored
+  contacted
+  replied
+  meeting_booked
+  deal_in_progress
+  won
+  lost
+  nurturing
+  blacklisted
+  unsubscribed
+}
+
+enum ChannelType {
+  email
+  linkedin
+  phone
+  sms
+  postal
+}
+
+enum SequenceStepStatus {
+  pending
+  sent
+  delivered
+  opened
+  clicked
+  replied
+  bounced
+  failed
+  skipped
+}
+
+enum ReplySentiment {
+  positive
+  negative
+  neutral
+  out_of_office
+  unsubscribe_request
+}
+
+enum TenderStatus {
+  open
+  closed
+  awarded
+  cancelled
+}
+
+enum DealStage {
+  discovery
+  proposal
+  negotiation
+  closed_won
+  closed_lost
+}
+
+enum AlertSeverity {
+  info
+  warning
+  critical
+}
+
+enum ActionType {
+  connection_request
+  message
+  inmail
+  visit
+  endorse
+}
+
+// ─── Models ──────────────────────────────────────────────────────────────────
+
+model Prospect {
+  id        String   @id @default(uuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  firstName    String?
+  lastName     String?
+  fullName     String?
+  email        String?  @unique
+  emailVerified Boolean @default(false)
+  phone        String?
+  linkedinUrl  String?
+  linkedinId   String?
+
+  companyName     String?
+  companySiren    String?
+  companySize     String?
+  companyRevenue  Float?
+  companyWebsite  String?
+  companyTechStack Json?
+
+  jobTitle         String?
+  seniorityLevel   String?
+  isDecisionMaker  Boolean @default(false)
+
+  status          ProspectStatus @default(raw)
+  enrichmentData  Json?
+  enrichedAt      DateTime?
+
+  consentGiven Boolean  @default(false)
+  consentDate  DateTime?
+  rgpdErasedAt DateTime?
+
+  scores                ProspectScore[]
+  generatedMessages     GeneratedMessage[]
+  emailSends            EmailSend[]
+  linkedinActions       LinkedinAction[]
+  sequences             ProspectSequence[]
+  replyClassifications  ReplyClassification[]
+  agentEvents           AgentEvent[]
+  rawLead               RawLead?
+  nurtureProspect       NurtureProspect?
+  deals                 DealCrm[]
+  bounceEvents          BounceEvent[]
+  nurtureInteractions   NurtureInteraction[]
+  customerContacts      Customer[]
+  quotes                Quote[]
+
+  @@index([status])
+  @@index([email])
+  @@index([companySiren])
+  @@map("prospects")
+}
+
+model RawLead {
+  id          String   @id @default(uuid())
+  createdAt   DateTime @default(now())
+
+  source      String
+  sourceId    String
+  sourceUrl   String?
+  rawData     Json
+  processed   Boolean  @default(false)
+  processedAt DateTime?
+
+  prospectId    String?   @unique
+  prospect      Prospect? @relation(fields: [prospectId], references: [id])
+
+  errorMessage String?
+  retryCount   Int     @default(0)
+
+  @@unique([source, sourceId])
+  @@index([processed])
+  @@map("raw_leads")
+}
+
+model ProspectScore {
+  id           String   @id @default(uuid())
+  calculatedAt DateTime @default(now())
+
+  prospectId String
+  prospect   Prospect @relation(fields: [prospectId], references: [id])
+
+  totalScore           Float
+  firmographicScore    Float
+  technographicScore   Float
+  behavioralScore      Float
+  engagementScore      Float
+  intentScore          Float
+  accessibilityScore   Float
+
+  scoreBreakdown Json?
+  segment        String?
+  isLatest       Boolean @default(true)
+  modelVersion   String  @default("1.0")
+
+  @@index([prospectId, isLatest])
+  @@map("prospect_scores")
+}
+
+model ScoringCoefficient {
+  id        String   @id @default(uuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  name         String
+  version      String
+  isActive     Boolean @default(false)
+  coefficients Json
+
+  @@unique([name, version])
+  @@map("scoring_coefficients")
+}
+
+model MessageTemplate {
+  id        String   @id @default(uuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  name       String
+  channel    ChannelType
+  stepNumber Int
+  subject    String?
+  body       String
+  variables  String[]
+
+  variant   String?
+  abGroupId String?
+
+  totalSent    Int @default(0)
+  totalOpened  Int @default(0)
+  totalClicked Int @default(0)
+  totalReplied Int @default(0)
+
+  isActive   Boolean   @default(true)
+  archivedAt DateTime?
+
+  promptVersion String?
+  language      String  @default("fr")
+
+  generatedMessages GeneratedMessage[]
+
+  @@map("message_templates")
+}
+
+model GeneratedMessage {
+  id        String   @id @default(uuid())
+  createdAt DateTime @default(now())
+
+  prospectId String
+  prospect   Prospect @relation(fields: [prospectId], references: [id])
+
+  templateId String?
+  template   MessageTemplate? @relation(fields: [templateId], references: [id])
+
+  channel    ChannelType
+  stepNumber Int
+  subject    String?
+  body       String
+
+  modelUsed           String
+  promptTokens        Int
+  completionTokens    Int
+  costEur             Float
+  generationMs        Int
+  personalizationData Json?
+  langfuseTraceId     String?
+
+  isApproved Boolean   @default(false)
+  approvedBy String?
+  approvedAt DateTime?
+
+  emailSends            EmailSend[]
+  replyClassifications  ReplyClassification[] @relation("GeneratedMessageClassifications")
+
+  @@index([prospectId])
+  @@map("generated_messages")
+}
+
+model EmailSend {
+  id        String   @id @default(uuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  prospectId String
+  prospect   Prospect @relation(fields: [prospectId], references: [id])
+
+  messageId String?
+  message   GeneratedMessage? @relation(fields: [messageId], references: [id])
+
+  sequenceId String?
+  sequence   ProspectSequence? @relation(fields: [sequenceId], references: [id])
+
+  fromEmail String
+  toEmail   String
+  subject   String
+
+  provider          String
+  providerMessageId String?
+
+  status SequenceStepStatus @default(pending)
+
+  sentAt        DateTime?
+  deliveredAt   DateTime?
+  openedAt      DateTime?
+  clickedAt     DateTime?
+  repliedAt     DateTime?
+  bouncedAt     DateTime?
+  bounceType    String?
+  unsubscribedAt DateTime?
+
+  openCount  Int @default(0)
+  clickCount Int @default(0)
+
+  trackingPixelId String?
+  errorMessage    String?
+  retryCount      Int     @default(0)
+
+  replyClassifications ReplyClassification[]
+  bounceEvents         BounceEvent[]
+
+  @@index([prospectId])
+  @@index([status])
+  @@map("email_sends")
+}
+
+model LinkedinAction {
+  id        String   @id @default(uuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  prospectId String
+  prospect   Prospect @relation(fields: [prospectId], references: [id])
+
+  sequenceId String?
+  sequence   ProspectSequence? @relation(fields: [sequenceId], references: [id])
+
+  actionType  ActionType
+  messageBody String?
+
+  status SequenceStepStatus @default(pending)
+
+  executedAt DateTime?
+  repliedAt  DateTime?
+
+  provider         String?
+  providerActionId String?
+  errorMessage     String?
+  retryCount       Int     @default(0)
+
+  replyClassifications ReplyClassification[]
+
+  @@index([prospectId])
+  @@map("linkedin_actions")
+}
+
+model ReplyClassification {
+  id        String   @id @default(uuid())
+  createdAt DateTime @default(now())
+
+  prospectId String
+  prospect   Prospect @relation(fields: [prospectId], references: [id])
+
+  generatedMessageId String?
+  generatedMessage   GeneratedMessage? @relation("GeneratedMessageClassifications", fields: [generatedMessageId], references: [id])
+
+  emailSendId String?
+  emailSend   EmailSend? @relation(fields: [emailSendId], references: [id])
+
+  linkedinActionId String?
+  linkedinAction   LinkedinAction? @relation(fields: [linkedinActionId], references: [id])
+
+  rawReply        String
+  replyReceivedAt DateTime
+
+  sentiment              ReplySentiment
+  intent                 String?
+  nextBestAction         String?
+  suggestedResponse      String?
+  classificationConfidence Float?
+
+  modelUsed       String?
+  costEur         Float?
+  langfuseTraceId String?
+
+  actionTaken   String?
+  actionTakenAt DateTime?
+  actionTakenBy String?
+
+  @@map("reply_classifications")
+}
+
+model ProspectSequence {
+  id        String   @id @default(uuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  prospectId String
+  prospect   Prospect @relation(fields: [prospectId], references: [id])
+
+  name       String
+  channel    ChannelType
+  totalSteps Int
+  currentStep Int @default(0)
+
+  startedAt   DateTime?
+  completedAt DateTime?
+  pausedAt    DateTime?
+  nextStepAt  DateTime?
+
+  status        String @default("active")
+  stoppedReason String?
+
+  opensCount   Int @default(0)
+  clicksCount  Int @default(0)
+  repliesCount Int @default(0)
+
+  emailSends      EmailSend[]
+  linkedinActions LinkedinAction[]
+
+  @@index([prospectId])
+  @@map("prospect_sequences")
+}
+
+model BounceEvent {
+  id        String   @id @default(uuid())
+  createdAt DateTime @default(now())
+
+  email      String
+  prospectId String?
+  prospect   Prospect? @relation(fields: [prospectId], references: [id])
+
+  emailSendId String?
+  emailSend   EmailSend? @relation(fields: [emailSendId], references: [id])
+
+  bounceType      String
+  bounceCode      String?
+  bounceMessage   String?
+  provider        String
+  providerEventId String?
+
+  @@index([email])
+  @@map("bounce_events")
+}
+
+model NurtureProspect {
+  id        String   @id @default(uuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  prospectId   String   @unique
+  prospect     Prospect @relation(fields: [prospectId], references: [id])
+
+  entryReason      String
+  entryDate        DateTime @default(now())
+  reactivationDate DateTime?
+  status           String   @default("active")
+  reactivatedAt    DateTime?
+  exitReason       String?
+  notes            String?
+  tags             String[]
+
+  interactions NurtureInteraction[]
+
+  @@map("nurture_prospects")
+}
+
+model NurtureInteraction {
+  id        String   @id @default(uuid())
+  createdAt DateTime @default(now())
+
+  nurtureId String
+  nurture   NurtureProspect @relation(fields: [nurtureId], references: [id])
+
+  prospectId String
+  prospect   Prospect @relation(fields: [prospectId], references: [id])
+
+  interactionType String
+  channel         ChannelType
+  contentTitle    String?
+  contentUrl      String?
+
+  opened  Boolean @default(false)
+  clicked Boolean @default(false)
+  replied Boolean @default(false)
+
+  replySentiment ReplySentiment?
+
+  @@map("nurture_interactions")
+}
+
+model DealCrm {
+  id        String   @id @default(uuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  prospectId String
+  prospect   Prospect @relation(fields: [prospectId], references: [id])
+
+  customerId String?
+  customer   Customer? @relation(fields: [customerId], references: [id])
+
+  title             String
+  stage             DealStage @default(discovery)
+  amountEur         Float?
+  probability       Float?
+  expectedCloseDate DateTime?
+  closedAt          DateTime?
+  wonReason         String?
+  lostReason        String?
+  ownerEmail        String?
+  quoteId           String?
+  tenderId          String?
+  stageHistory      Json?
+
+  quote Quote?
+
+  @@index([stage])
+  @@index([prospectId])
+  @@map("deals_crm")
+}
+
+model Quote {
+  id        String   @id @default(uuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  dealId String  @unique
+  deal   DealCrm @relation(fields: [dealId], references: [id])
+
+  prospectId String
+  prospect   Prospect @relation(fields: [prospectId], references: [id])
+
+  quoteNumber  String  @unique
+  title        String
+  amountHtEur  Float
+  tvaRate      Float   @default(0.20)
+  amountTtcEur Float?
+  lineItems    Json
+  validityDays Int     @default(30)
+  expiresAt    DateTime?
+  notes        String?
+  status       String  @default("draft")
+
+  yousignProcedureId  String?
+  signedAt            DateTime?
+  signedDocumentUrl   String?
+  pdfUrl              String?
+  pdfGeneratedAt      DateTime?
+
+  @@map("quotes")
+}
+
+model PublicTender {
+  id        String   @id @default(uuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  source    String
+  sourceId  String
+  sourceUrl String?
+
+  title       String
+  description String?
+
+  buyerName  String?
+  buyerSiren String?
+
+  publicationDate  DateTime?
+  deadlineDate     DateTime?
+  estimatedAmount  Float?
+  estimatedBudget  Float?
+
+  dceFitScore      Float?
+  dceAnalyzed      Boolean @default(false)
+  dceAnalysisResult Json?
+  langfuseTraceId  String?
+
+  status TenderStatus @default(open)
+
+  @@unique([source, sourceId])
+  @@index([status])
+  @@index([deadlineDate])
+  @@map("public_tenders")
+}
+
+model Customer {
+  id        String   @id @default(uuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  companyName String
+  siren       String? @unique
+  legalForm   String?
+
+  primaryContactId String?
+  primaryContact   Prospect? @relation(fields: [primaryContactId], references: [id])
+
+  contractStartDate DateTime?
+  contractEndDate   DateTime?
+  mrrEur            Float     @default(0)
+  plan              String?
+  status            String    @default("active")
+  churnedAt         DateTime?
+  churnReason       String?
+  externalCrmId     String?
+  notes             String?
+
+  healthScores CustomerHealthScore[]
+  deals        DealCrm[]
+
+  @@index([status])
+  @@map("customers")
+}
+
+model CustomerHealthScore {
+  id           String   @id @default(uuid())
+  calculatedAt DateTime @default(now())
+
+  customerId String
+  customer   Customer @relation(fields: [customerId], references: [id])
+
+  healthScore     Float
+  healthLabel     String?
+  usageScore      Float?
+  supportScore    Float?
+  financialScore  Float?
+  engagementScore Float?
+  npsScore        Float?
+  signals         Json?
+  isLatest        Boolean @default(true)
+
+  @@index([customerId, isLatest])
+  @@map("customer_health_scores")
+}
+
+model MetriquesDaily {
+  id          String   @id @default(uuid())
+  date        DateTime @db.Date
+  metricName  String
+  metricValue Float
+  dimensions  Json?
+  createdAt   DateTime @default(now())
+
+  @@unique([date, metricName])
+  @@map("metriques_daily")
+}
+
+model Alertes {
+  id         String    @id @default(uuid())
+  createdAt  DateTime  @default(now())
+  resolvedAt DateTime?
+
+  severity    AlertSeverity
+  title       String
+  description String?
+  category    String?
+  metricName  String?
+  metricValue Float?
+  thresholdValue Float?
+
+  notifiedSlack Boolean   @default(false)
+  notifiedEmail Boolean   @default(false)
+  notifiedAt    DateTime?
+
+  isResolved     Boolean  @default(false)
+  resolvedBy     String?
+  resolutionNote String?
+
+  @@index([severity, isResolved])
+  @@map("alertes")
+}
+
+model Recommandations {
+  id        String   @id @default(uuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  type        String
+  title       String
+  description String
+  priority    Int    @default(0)
+  actionUrl   String?
+  targetType  String?
+  targetIds   String[]
+
+  generatedBy String?
+  confidence  Float?
+  modelUsed   String?
+  status      String  @default("pending")
+
+  appliedAt   DateTime?
+  appliedBy   String?
+  dismissedAt DateTime?
+
+  @@map("recommandations")
+}
+
+model RgpdBlacklist {
+  id        String   @id @default(uuid())
+  createdAt DateTime @default(now())
+
+  email        String?
+  linkedinUrl  String?
+  companySiren String?
+  phone        String?
+  reason       String
+  source       String?
+  notes        String?
+  expiresAt    DateTime?
+
+  @@index([email])
+  @@index([linkedinUrl])
+  @@map("rgpd_blacklist")
+}
+
+model AgentEvent {
+  id        String   @id @default(uuid())
+  createdAt DateTime @default(now())
+
+  agentName String
+  eventType String
+  jobId     String?
+
+  prospectId String?
+  prospect   Prospect? @relation(fields: [prospectId], references: [id])
+
+  payload        Json?
+  result         Json?
+  errorMessage   String?
+  durationMs     Int?
+  langfuseTraceId String?
+
+  @@index([agentName, eventType])
+  @@index([createdAt])
+  @@map("agent_events")
+}

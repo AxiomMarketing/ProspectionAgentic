@@ -1,0 +1,96 @@
+{
+	# Global options
+	admin off
+	email admin@{$DOMAIN}
+}
+
+# Main application
+{$DOMAIN} {
+	encode gzip
+
+	header {
+		Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
+		X-Frame-Options "DENY"
+		X-Content-Type-Options "nosniff"
+		Content-Security-Policy "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'"
+		Referrer-Policy "strict-origin-when-cross-origin"
+		-Server
+	}
+
+	reverse_proxy app:3000
+}
+
+# n8n — admin service, IP-restricted
+n8n.{$DOMAIN} {
+	encode gzip
+
+	header {
+		Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
+		X-Frame-Options "DENY"
+		X-Content-Type-Options "nosniff"
+		Referrer-Policy "strict-origin-when-cross-origin"
+		-Server
+	}
+
+	@allowed {
+		remote_ip 10.0.0.0/8 172.16.0.0/12 192.168.0.0/16 {$ADMIN_IP}
+	}
+
+	handle @allowed {
+		reverse_proxy n8n:5678
+	}
+
+	handle {
+		respond "Access Denied" 403
+	}
+}
+
+# Langfuse — admin service, IP-restricted
+langfuse.{$DOMAIN} {
+	encode gzip
+
+	header {
+		Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
+		X-Frame-Options "DENY"
+		X-Content-Type-Options "nosniff"
+		Referrer-Policy "strict-origin-when-cross-origin"
+		-Server
+	}
+
+	@allowed {
+		remote_ip 10.0.0.0/8 172.16.0.0/12 192.168.0.0/16 {$ADMIN_IP}
+	}
+
+	handle @allowed {
+		reverse_proxy langfuse:3000
+	}
+
+	handle {
+		respond "Access Denied" 403
+	}
+}
+
+# Metabase — admin service, IP-restricted
+metabase.{$DOMAIN} {
+	encode gzip
+
+	header {
+		Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
+		X-Frame-Options "DENY"
+		X-Content-Type-Options "nosniff"
+		Referrer-Policy "strict-origin-when-cross-origin"
+		-Server
+	}
+
+	@allowed {
+		remote_ip 10.0.0.0/8 172.16.0.0/12 192.168.0.0/16 {$ADMIN_IP}
+	}
+
+	handle @allowed {
+		reverse_proxy metabase:3000
+	}
+
+	handle {
+		respond "Access Denied" 403
+	}
+}

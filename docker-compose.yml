@@ -1,0 +1,192 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: production
+    container_name: prospection-app
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+      - REDIS_URL=redis://:${REDIS_PASSWORD}@redis:6379
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - prospection-net
+    security_opt:
+      - no-new-privileges:true
+
+  postgres:
+    image: postgres:16-alpine
+    container_name: prospection-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-prospection}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB:-prospection_prod}
+      PGDATA: /var/lib/postgresql/data/pgdata
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./infrastructure/postgres/init.sql:/docker-entrypoint-initdb.d/01-init.sql:ro
+      - ./infrastructure/postgres/postgresql.conf:/etc/postgresql/postgresql.conf:ro
+    command: postgres -c config_file=/etc/postgresql/postgresql.conf
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-prospection}"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    # Ports intentionally not exposed - use docker exec or override for dev
+    networks:
+      - prospection-net
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    cap_add:
+      - CHOWN
+      - SETFCAP
+      - SETGID
+      - SETUID
+
+  redis:
+    image: redis:7.4-alpine
+    container_name: prospection-redis
+    restart: unless-stopped
+    command: >
+      redis-server
+      --save 300 100
+      --save 60 10000
+      --loglevel notice
+      --requirepass ${REDIS_PASSWORD}
+      --maxmemory 1gb
+      --maxmemory-policy noeviction
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD}", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    # Ports intentionally not exposed - use docker exec or override for dev
+    networks:
+      - prospection-net
+    security_opt:
+      - no-new-privileges:true
+
+  n8n:
+    image: n8nio/n8n:1.123.17
+    container_name: prospection-n8n
+    restart: unless-stopped
+    environment:
+      - DB_TYPE=postgresdb
+      - DB_POSTGRESDB_HOST=postgres
+      - DB_POSTGRESDB_PORT=5432
+      - DB_POSTGRESDB_USER=${POSTGRES_USER:-prospection}
+      - DB_POSTGRESDB_PASSWORD=${POSTGRES_PASSWORD}
+      - DB_POSTGRESDB_DATABASE=${N8N_DB_NAME:-n8n_prod}
+      - N8N_ENCRYPTION_KEY=${N8N_ENCRYPTION_KEY}
+      - N8N_BLOCK_ENV_ACCESS_IN_NODE=true
+      - N8N_DISABLE_PRODUCTION_MAIN_PROCESS=false
+      - GENERIC_TIMEZONE=Europe/Paris
+      - EXECUTIONS_DATA_MAX_AGE=336
+    volumes:
+      - n8n_data:/home/node/.n8n
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:5678/healthz"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - prospection-net
+
+  langfuse:
+    image: langfuse/langfuse:3
+    container_name: prospection-langfuse
+    restart: unless-stopped
+    environment:
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-prospection}:${POSTGRES_PASSWORD}@postgres:5432/${LANGFUSE_DB_NAME:-langfuse_prod}
+      - NEXTAUTH_URL=https://langfuse.${DOMAIN}
+      - NEXTAUTH_SECRET=${LANGFUSE_NEXTAUTH_SECRET}
+      - SALT=${LANGFUSE_SALT}
+      - ENCRYPTION_KEY=${LANGFUSE_ENCRYPTION_KEY}
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/api/public/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - prospection-net
+
+  metabase:
+    image: metabase/metabase:v0.59.1.6
+    container_name: prospection-metabase
+    restart: unless-stopped
+    environment:
+      - MB_DB_TYPE=postgres
+      - MB_DB_DBNAME=${METABASE_DB_NAME:-metabase_prod}
+      - MB_DB_PORT=5432
+      - MB_DB_USER=${POSTGRES_USER:-prospection}
+      - MB_DB_PASS=${POSTGRES_PASSWORD}
+      - MB_DB_HOST=postgres
+      - MB_SITE_URL=https://metabase.${DOMAIN}
+      - MB_EMBEDDING_SECRET_KEY=${METABASE_EMBEDDING_KEY}
+    volumes:
+      - metabase_data:/metabase-data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/api/health"]
+      interval: 60s
+      timeout: 15s
+      retries: 3
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - prospection-net
+
+  caddy:
+    image: caddy:2.11-alpine
+    container_name: prospection-caddy
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    environment:
+      - DOMAIN=${DOMAIN}
+      - ADMIN_IP=${ADMIN_IP:-127.0.0.1}
+    volumes:
+      - ./infrastructure/caddy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    networks:
+      - prospection-net
+
+networks:
+  prospection-net:
+    driver: bridge
+
+volumes:
+  postgres_data:
+  redis_data:
+  n8n_data:
+  metabase_data:
+  caddy_data:
+  caddy_config:
