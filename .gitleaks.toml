@@ -1,0 +1,24 @@
+title = "Gitleaks config for ProspectionAgentic"
+
+[extend]
+useDefault = true
+
+[[rules]]
+id = "anthropic-api-key"
+description = "Anthropic API Key"
+regex = '''sk-ant-api\d{2}-[A-Za-z0-9_-]{86}'''
+tags = ["key", "anthropic"]
+
+[[rules]]
+id = "langfuse-secret-key"
+description = "Langfuse Secret Key"
+regex = '''sk-lf-[A-Za-z0-9_-]{32,}'''
+tags = ["key", "langfuse"]
+
+[allowlist]
+paths = [
+  '''.env.example''',
+  '''\.md$''',
+  '''\.test\.ts$''',
+  '''\.spec\.ts$''',
+]
