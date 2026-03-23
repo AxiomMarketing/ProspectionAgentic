@@ -6,7 +6,7 @@ import {
 } from '../../application/dtos/calculate-score.dto';
 import { ZodValidationPipe } from '@common/pipes/zod-validation.pipe';
 
-@Controller('api/agents/scoreur')
+@Controller('agents/scoreur')
 export class ScoreurController {
   constructor(private readonly scoreurService: ScoreurService) {}
 

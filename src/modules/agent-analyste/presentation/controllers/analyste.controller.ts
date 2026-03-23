@@ -3,7 +3,7 @@ import { CommandBus, QueryBus } from '@nestjs/cqrs';
 import { AnalyzePipelineCommand } from '../../application/commands/analyze-pipeline.command';
 import { GetPipelineMetricsQuery } from '../../application/queries/get-pipeline-metrics.query';
 
-@Controller('api/agents/analyste')
+@Controller('agents/analyste')
 export class AnalysteController {
   constructor(
     private readonly commandBus: CommandBus,

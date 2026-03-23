@@ -2,7 +2,7 @@ import { registerAs } from '@nestjs/config';
 import { z } from 'zod';
 
 const jwtSchema = z.object({
-  secret: z.string().min(64),
+  secret: z.string().min(1, 'JWT_SECRET is required'),
   expiration: z.string().default('15m'),
   refreshExpiration: z.string().default('7d'),
 });

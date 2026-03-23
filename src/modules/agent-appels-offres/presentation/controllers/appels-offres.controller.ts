@@ -3,7 +3,7 @@ import { CommandBus, QueryBus } from '@nestjs/cqrs';
 import { AnalyzeTenderCommand } from '../../application/commands/analyze-tender.command';
 import { GetTenderAnalysisQuery } from '../../application/queries/get-tender-analysis.query';
 
-@Controller('api/agents/appels-offres')
+@Controller('agents/appels-offres')
 export class AppelsOffresController {
   constructor(
     private readonly commandBus: CommandBus,

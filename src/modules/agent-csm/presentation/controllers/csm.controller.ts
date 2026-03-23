@@ -6,7 +6,7 @@ import {
 } from '../../application/dtos/onboard-customer.dto';
 import { ZodValidationPipe } from '@common/pipes/zod-validation.pipe';
 
-@Controller('api/agents/csm')
+@Controller('agents/csm')
 export class CsmController {
   constructor(private readonly csmService: CsmService) {}
 

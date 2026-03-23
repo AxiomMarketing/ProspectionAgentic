@@ -3,7 +3,7 @@ import { VeilleurService } from '../../application/services/veilleur.service';
 import { DetectLeadSchema, DetectLeadDto } from '../../application/dtos/detect-lead.dto';
 import { ZodValidationPipe } from '@common/pipes/zod-validation.pipe';
 
-@Controller('api/agents/veilleur')
+@Controller('agents/veilleur')
 export class VeilleurController {
   constructor(private readonly veilleurService: VeilleurService) {}
 

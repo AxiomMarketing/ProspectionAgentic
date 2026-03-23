@@ -3,7 +3,7 @@ import { NurtureurService } from '../../application/services/nurtureur.service';
 import { StartNurtureSchema, StartNurtureDto } from '../../application/dtos/start-nurture.dto';
 import { ZodValidationPipe } from '@common/pipes/zod-validation.pipe';
 
-@Controller('api/agents/nurtureur')
+@Controller('agents/nurtureur')
 export class NurtureurController {
   constructor(private readonly nurtureurService: NurtureurService) {}
 

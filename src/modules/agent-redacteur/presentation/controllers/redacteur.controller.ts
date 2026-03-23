@@ -6,7 +6,7 @@ import {
 } from '../../application/dtos/generate-message.dto';
 import { ZodValidationPipe } from '@common/pipes/zod-validation.pipe';
 
-@Controller('api/agents/redacteur')
+@Controller('agents/redacteur')
 export class RedacteurController {
   constructor(private readonly redacteurService: RedacteurService) {}
 

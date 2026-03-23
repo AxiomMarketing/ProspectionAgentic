@@ -4,7 +4,7 @@ import { PrismaService } from '@core/database/prisma.service';
 import { Public } from '@common/decorators/public.decorator';
 
 @Public()
-@Controller('api/health')
+@Controller('health')
 export class HealthController {
   constructor(
     private health: HealthCheckService,

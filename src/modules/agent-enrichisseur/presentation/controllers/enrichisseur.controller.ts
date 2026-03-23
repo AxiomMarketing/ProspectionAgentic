@@ -6,7 +6,7 @@ import {
 } from '../../application/dtos/enrich-prospect.dto';
 import { ZodValidationPipe } from '@common/pipes/zod-validation.pipe';
 
-@Controller('api/agents/enrichisseur')
+@Controller('agents/enrichisseur')
 export class EnrichisseurController {
   constructor(private readonly enrichisseurService: EnrichisseurService) {}
 

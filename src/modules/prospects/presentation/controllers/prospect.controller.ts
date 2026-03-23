@@ -10,7 +10,7 @@ import { ZodValidationPipe } from '@common/pipes/zod-validation.pipe';
 import { UuidParamSchema } from '@shared/dtos/id-param.dto';
 import { Roles } from '@common/decorators/roles.decorator';
 
-@Controller('api/prospects')
+@Controller('prospects')
 export class ProspectController {
   constructor(private readonly prospectService: ProspectService) {}
 

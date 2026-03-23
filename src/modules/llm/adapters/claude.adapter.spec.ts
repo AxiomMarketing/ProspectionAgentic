@@ -20,6 +20,7 @@ describe('ClaudeAdapter', () => {
   let adapter: ClaudeAdapter;
 
   const mockConfigService = {
+    get: jest.fn().mockReturnValue('test-api-key'),
     getOrThrow: jest.fn().mockReturnValue('test-api-key'),
   };
 

@@ -2,7 +2,7 @@ import { registerAs } from '@nestjs/config';
 import { z } from 'zod';
 
 const llmSchema = z.object({
-  anthropicApiKey: z.string().min(1),
+  anthropicApiKey: z.string().default(''),
   monthlyBudgetEur: z.coerce.number().default(500),
   dailyBudgetEur: z.coerce.number().default(25),
 });

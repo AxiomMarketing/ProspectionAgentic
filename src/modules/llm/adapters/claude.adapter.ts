@@ -15,14 +15,19 @@ export class ClaudeAdapter extends ILlmAdapter {
 
   constructor(private readonly configService: ConfigService) {
     super();
-    this.client = new Anthropic({
-      apiKey: this.configService.getOrThrow<string>('llm.anthropicApiKey'),
-      maxRetries: 2,
-      timeout: 60_000,
-    });
+    const apiKey = this.configService.get<string>('llm.anthropicApiKey', '');
+    if (apiKey) {
+      this.client = new Anthropic({ apiKey, maxRetries: 2, timeout: 60_000 });
+    } else {
+      this.logger.warn('ANTHROPIC_API_KEY not set — Claude adapter unavailable');
+      this.client = null as any;
+    }
   }
 
   async complete(request: LlmCompletionRequest): Promise<LlmCompletionResponse> {
+    if (!this.client) {
+      throw new ClaudeApiUnavailableException('ANTHROPIC_API_KEY not configured');
+    }
     const model = request.model ?? 'claude-sonnet-4-20250514';
 
     const messages: Anthropic.MessageParam[] = request.messages
@@ -61,6 +66,7 @@ export class ClaudeAdapter extends ILlmAdapter {
   }
 
   async isAvailable(): Promise<boolean> {
+    if (!this.client) return false;
     try {
       await this.client.messages.create({
         model: 'claude-haiku-3-5-20241022',

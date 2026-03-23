@@ -69,19 +69,25 @@ import { DashboardModule } from '@modules/dashboard/dashboard.module';
     // BullMQ (job queues)
     BullModule.forRootAsync({
       inject: [ConfigService],
-      useFactory: (configService: ConfigService) => ({
-        connection: {
-          host: configService.get('REDIS_HOST', 'localhost'),
-          port: configService.get<number>('REDIS_PORT', 6379),
-          password: configService.get('REDIS_PASSWORD'),
-        },
-        defaultJobOptions: {
-          removeOnComplete: { count: 100 },
-          removeOnFail: { count: 500 },
-          attempts: 3,
-          backoff: { type: 'exponential', delay: 2000 },
-        },
-      }),
+      useFactory: (configService: ConfigService) => {
+        const redisUrl = configService.get<string>('redis.url');
+        const connection = redisUrl
+          ? { url: redisUrl }
+          : {
+              host: configService.get<string>('redis.host', 'localhost'),
+              port: configService.get<number>('redis.port', 6379),
+              password: configService.get<string>('redis.password'),
+            };
+        return {
+          connection,
+          defaultJobOptions: {
+            removeOnComplete: { count: 100 },
+            removeOnFail: { count: 500 },
+            attempts: 3,
+            backoff: { type: 'exponential', delay: 2000 },
+          },
+        };
+      },
     }),
 
     // Rate limiting

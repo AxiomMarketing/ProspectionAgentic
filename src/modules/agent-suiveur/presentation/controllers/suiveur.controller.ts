@@ -3,7 +3,7 @@ import { SuiveurService } from '../../application/services/suiveur.service';
 import { ExecuteStepSchema, ExecuteStepDto } from '../../application/dtos/execute-step.dto';
 import { ZodValidationPipe } from '@common/pipes/zod-validation.pipe';
 
-@Controller('api/agents/suiveur')
+@Controller('agents/suiveur')
 export class SuiveurController {
   constructor(private readonly suiveurService: SuiveurService) {}
 

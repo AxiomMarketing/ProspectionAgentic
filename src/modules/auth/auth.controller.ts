@@ -24,7 +24,7 @@ type LoginDto = z.infer<typeof LoginSchema>;
 type RefreshDto = z.infer<typeof RefreshSchema>;
 
 @Public()
-@Controller('api/auth')
+@Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 

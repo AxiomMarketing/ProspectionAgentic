@@ -1,0 +1,46 @@
+# Local development only — postgres + redis
+# Usage: docker compose -f docker-compose.dev.yml up -d
+services:
+  postgres-dev:
+    image: postgres:16-alpine
+    container_name: prospection-postgres-dev
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: prospection
+      POSTGRES_PASSWORD: prospection_dev_password
+      POSTGRES_DB: prospection_dev
+    volumes:
+      - prospection_postgres_dev:/var/lib/postgresql/data
+      - ./infrastructure/postgres/init.sql:/docker-entrypoint-initdb.d/01-init.sql:ro
+    ports:
+      - "5433:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U prospection"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  redis-dev:
+    image: redis:7.4-alpine
+    container_name: prospection-redis-dev
+    restart: unless-stopped
+    command: >
+      redis-server
+      --save 60 100
+      --loglevel notice
+      --requirepass redis_dev_password
+      --maxmemory 256mb
+      --maxmemory-policy noeviction
+    ports:
+      - "6381:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "redis_dev_password", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    volumes:
+      - prospection_redis_dev:/data
+
+volumes:
+  prospection_postgres_dev:
+  prospection_redis_dev:

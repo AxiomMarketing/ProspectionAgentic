@@ -9,7 +9,7 @@ import {
 import { ZodValidationPipe } from '@common/pipes/zod-validation.pipe';
 import { DealStage } from '../../domain/entities/deal.entity';
 
-@Controller('api/agents/dealmaker')
+@Controller('agents/dealmaker')
 export class DealmakerController {
   constructor(private readonly dealmakerService: DealmakerService) {}
 
