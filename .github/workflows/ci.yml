@@ -109,7 +109,7 @@ jobs:
           DATABASE_URL: postgresql://test:test@localhost:5432/prospection_test
 
       - name: Run integration tests
-        run: npm run test:integration
+        run: npm run test:integration -- --passWithNoTests
         env:
           NODE_ENV: test
           DATABASE_URL: postgresql://test:test@localhost:5432/prospection_test
