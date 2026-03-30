@@ -2,7 +2,19 @@ import { Injectable, Logger } from '@nestjs/common';
 import { connect, TLSSocket } from 'tls';
 import lighthouse from 'lighthouse';
 import * as chromeLauncher from 'chrome-launcher';
-import Wappalyzer from 'wappalyzer-core';
+// wappalyzer-core is deprecated and calls process.exit() on import
+// Use lazy dynamic import to prevent crash at module load time
+let Wappalyzer: any = null;
+async function getWappalyzer() {
+  if (!Wappalyzer) {
+    try {
+      Wappalyzer = (await import('wappalyzer-core')).default;
+    } catch {
+      Wappalyzer = null;
+    }
+  }
+  return Wappalyzer;
+}
 import axe from 'axe-core';
 
 export interface WebScanResult {

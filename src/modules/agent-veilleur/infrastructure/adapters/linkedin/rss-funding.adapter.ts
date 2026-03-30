@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import Parser from 'rss-parser';
+import * as Parser from 'rss-parser';
 import { LinkedInSignal } from './linkedin-signal.interface';
 
 const FUNDING_ROUND_PATTERNS: { pattern: RegExp; label: string; score: number }[] = [

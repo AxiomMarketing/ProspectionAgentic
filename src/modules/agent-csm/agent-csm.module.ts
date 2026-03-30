@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { BullModule } from '@nestjs/bullmq';
 import { EmailModule } from '@modules/email/email.module';
+import { LlmModule } from '@modules/llm/llm.module';
 import { CsmService } from './application/services/csm.service';
 import { OnboardingService } from './application/services/onboarding.service';
 import { SatisfactionService } from './application/services/satisfaction.service';
@@ -18,6 +19,7 @@ import { QUEUE_NAMES } from '@shared/constants/queue-names.constant';
 @Module({
   imports: [
     EmailModule,
+    LlmModule,
     BullModule.registerQueue({ name: QUEUE_NAMES.CSM_ONBOARDING }),
     BullModule.registerQueue({ name: QUEUE_NAMES.VEILLEUR_REFERRAL_LEADS }),
     BullModule.registerQueue({ name: QUEUE_NAMES.NURTURER_CHURNED_CLIENT }),
