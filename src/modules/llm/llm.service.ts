@@ -16,7 +16,7 @@ export class LlmService {
     const model = MODEL_ROUTING[options.task];
     const startTime = Date.now();
 
-    if (!this.costTracker.checkBudget()) {
+    if (!(await this.costTracker.checkBudget())) {
       throw new Error('LLM budget exceeded');
     }
 
@@ -30,7 +30,7 @@ export class LlmService {
       temperature: options.temperature,
     });
 
-    const costEur = this.costTracker.record(model, response.inputTokens, response.outputTokens);
+    const costEur = await this.costTracker.record(model, response.inputTokens, response.outputTokens);
     const durationMs = Date.now() - startTime;
 
     this.logger.log({

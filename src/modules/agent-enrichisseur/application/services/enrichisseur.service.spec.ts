@@ -1,12 +1,21 @@
+// Mock ESM modules loaded via TechEnrichmentService → WebScannerAdapter chain
+jest.mock('lighthouse', () => jest.fn());
+jest.mock('chrome-launcher', () => ({ launch: jest.fn() }));
+jest.mock('wappalyzer-core', () => jest.fn());
+jest.mock('axe-core', () => ({ run: jest.fn() }));
+
+import { AgentEventLoggerService } from '@shared/services/agent-event-logger.service';
 import { Test, TestingModule } from '@nestjs/testing';
 import { getQueueToken } from '@nestjs/bullmq';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { EnrichisseurService } from './enrichisseur.service';
-import { EmailPatternService } from './email-pattern.service';
+import { EmailFinderService } from '../../infrastructure/services/email-finder.service';
+import { CompanyEnricherService } from '../../infrastructure/services/company-enricher.service';
 import { PrismaService } from '@core/database/prisma.service';
 import { BlacklistedContactException } from '@common/exceptions/blacklisted-contact.exception';
 import { ProspectNotFoundException } from '@common/exceptions/prospect-not-found.exception';
 import { QUEUE_NAMES } from '@shared/constants/queue-names.constant';
+import { TechEnrichmentService } from '../../infrastructure/services/tech-enrichment.service';
 
 const mockProspect = {
   id: 'prospect-1',
@@ -28,6 +37,7 @@ const mockPrisma = {
     groupBy: jest.fn(),
     count: jest.fn(),
   },
+  rawLead: { findFirst: jest.fn().mockResolvedValue({ rawData: { signals: [], segment: 'pme_metro' }, source: 'linkedin' }) },
   rgpdBlacklist: { findFirst: jest.fn() },
   prospectScore: { count: jest.fn() },
   emailSend: { count: jest.fn() },
@@ -42,6 +52,32 @@ const mockQueue = { add: jest.fn().mockResolvedValue({ id: 'job-1' }) };
 
 const mockEventEmitter = { emit: jest.fn() };
 
+const mockEmailFinderService = {
+  findEmail: jest.fn().mockResolvedValue({
+    email: 'jean.dupont@acme.com',
+    confidence: 99,
+    source: 'smtp_verified',
+    patternsChecked: 3,
+    domain: 'acme.com',
+  }),
+};
+
+const mockCompanyEnricherService = {
+  enrichBySiren: jest.fn().mockResolvedValue({
+    siren: '123456789',
+    legalName: 'Acme SAS',
+    directors: [{ firstName: 'Jean', lastName: 'Dupont', role: 'Président' }],
+    beneficialOwners: [],
+    financials: [{ year: 2025, revenue: 500000 }],
+    legalNotices: [],
+    hasCollectiveProcedure: false,
+    sourcesUsed: ['insee', 'inpi', 'bodacc'],
+    sourcesUnavailable: [],
+    enrichedAt: new Date(),
+  }),
+  enrichByName: jest.fn().mockResolvedValue(null),
+};
+
 describe('EnrichisseurService', () => {
   let service: EnrichisseurService;
 
@@ -51,10 +87,13 @@ describe('EnrichisseurService', () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         EnrichisseurService,
-        EmailPatternService,
         { provide: PrismaService, useValue: mockPrisma },
+        { provide: EmailFinderService, useValue: mockEmailFinderService },
+        { provide: CompanyEnricherService, useValue: mockCompanyEnricherService },
         { provide: getQueueToken(QUEUE_NAMES.SCOREUR_PIPELINE), useValue: mockQueue },
         { provide: EventEmitter2, useValue: mockEventEmitter },
+        { provide: AgentEventLoggerService, useValue: { log: jest.fn() } },
+        { provide: TechEnrichmentService, useValue: { enrichTechnique: jest.fn().mockResolvedValue(null) } },
       ],
     }).compile();
 
@@ -117,6 +156,37 @@ describe('EnrichisseurService', () => {
         'prospect.enriched',
         expect.objectContaining({ prospectId: mockProspect.id }),
       );
+    });
+
+    it('should call EmailFinderService with correct parameters', async () => {
+      mockPrisma.prospect.findUnique.mockResolvedValue(mockProspect);
+      mockPrisma.rgpdBlacklist.findFirst.mockResolvedValue(null);
+      mockPrisma.prospect.update.mockResolvedValue({ ...mockProspect, status: 'enriched' });
+
+      await service.enrichProspect({ prospectId: mockProspect.id });
+
+      expect(mockEmailFinderService.findEmail).toHaveBeenCalled();
+    });
+
+    it('should call CompanyEnricherService when SIREN is missing', async () => {
+      const prospectNoSiren = { ...mockProspect, companySiren: null };
+      mockPrisma.prospect.findUnique.mockResolvedValue(prospectNoSiren);
+      mockPrisma.rgpdBlacklist.findFirst.mockResolvedValue(null);
+      mockPrisma.prospect.update.mockResolvedValue({ ...prospectNoSiren, status: 'enriched' });
+
+      await service.enrichProspect({ prospectId: prospectNoSiren.id });
+
+      expect(mockCompanyEnricherService.enrichByName).toHaveBeenCalledWith('Acme');
+    });
+
+    it('should skip company enrichment when SIREN already present', async () => {
+      mockPrisma.prospect.findUnique.mockResolvedValue(mockProspect);
+      mockPrisma.rgpdBlacklist.findFirst.mockResolvedValue(null);
+      mockPrisma.prospect.update.mockResolvedValue({ ...mockProspect, status: 'enriched' });
+
+      await service.enrichProspect({ prospectId: mockProspect.id });
+
+      expect(mockCompanyEnricherService.enrichBySiren).not.toHaveBeenCalled();
     });
   });
 

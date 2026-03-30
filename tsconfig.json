@@ -24,5 +24,6 @@
       "@shared/*": ["shared/*"],
       "@modules/*": ["modules/*"]
     }
-  }
+  },
+  "exclude": ["dashboard", "node_modules", "dist"]
 }

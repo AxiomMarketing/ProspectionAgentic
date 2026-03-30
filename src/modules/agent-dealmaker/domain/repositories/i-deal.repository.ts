@@ -4,6 +4,9 @@ export abstract class IDealRepository {
   abstract findById(id: string): Promise<Deal | null>;
   abstract findByProspectId(prospectId: string): Promise<Deal[]>;
   abstract findByStage(stage: DealStage): Promise<Deal[]>;
+  abstract findActiveByProspectId(prospectId: string): Promise<Deal[]>;
+  abstract findStaleDeals(cutoffDate: Date): Promise<Deal[]>;
+  abstract findAll(pagination: { take: number; skip: number }): Promise<Deal[]>;
   abstract save(deal: Deal): Promise<Deal>;
   abstract update(deal: Deal): Promise<Deal>;
 }

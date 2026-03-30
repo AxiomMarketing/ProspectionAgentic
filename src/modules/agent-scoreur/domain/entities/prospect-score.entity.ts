@@ -9,6 +9,7 @@ export interface ProspectScoreProps {
   intentScore: number;
   accessibilityScore: number;
   segment: string;
+  category?: string;
   isLatest: boolean;
   modelVersion: string;
   calculatedAt: Date;
@@ -58,6 +59,9 @@ export class ProspectScore {
   }
   get segment(): string {
     return this.props.segment;
+  }
+  get category(): string | undefined {
+    return this.props.category;
   }
   get isLatest(): boolean {
     return this.props.isLatest;

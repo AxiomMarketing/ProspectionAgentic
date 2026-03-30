@@ -3,12 +3,13 @@ export interface SendEmailRequest {
   to: string[];
   cc?: string[];
   subject: string;
-  htmlBody: string;
+  htmlBody: string;      // Keep name for backward compat but will be plain text
   textBody?: string;
   replyTo?: string;
   trackOpens?: boolean;
   trackClicks?: boolean;
   tags?: string[];
+  headers?: Record<string, string>;  // NEW: custom tracking headers
 }
 
 export interface SendEmailResponse {

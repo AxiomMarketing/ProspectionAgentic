@@ -123,7 +123,7 @@ Génère `DailyReport` avec volumes par source, taux de déduplication, top sign
 |-----|-----------|---------|------------|
 | Netrows API (signaux LinkedIn) | 99 EUR | Illimité (plan mensuel) | Variable |
 | SignalsAPI (Crunchbase/LinkedIn) | 99 USD (~93 EUR) | Inclus plan | Variable |
-| Make.com (workflows automation) | 29 EUR | 10 000 ops | N/A |
+| n8n self-hosted (workflows automation) | 0 EUR | Illimité | N/A |
 | Hunter.io (partage entre agents) | 12 EUR (1/4 du plan 49 EUR) | 375 crédits/mois alloués | 30 req/min |
 | Apify (LinkedIn Jobs + WTTJ + HelloWork) | 49 USD (~46 EUR) | Selon usage | 1 req/s |
 | HasData Indeed API | 50 USD (~47 EUR) | 5 000 requêtes | 10 req/s |
@@ -317,7 +317,7 @@ CREATE TABLE sites_a_scanner (
 |-------|-----------|
 | Netrows API (1a signaux LinkedIn) | 99 EUR |
 | SignalsAPI (1a LinkedIn/Crunchbase) | ~93 EUR |
-| Make.com (1a workflows) | 29 EUR |
+| n8n self-hosted (1a workflows) | 0 EUR |
 | Hunter.io partagé (1a quota) | 12 EUR |
 | Apify (1d job boards) | ~46 EUR |
 | HasData Indeed (1d) | ~47 EUR |

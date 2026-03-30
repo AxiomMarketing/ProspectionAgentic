@@ -1,33 +1,51 @@
 import { QueryHandler, IQueryHandler } from '@nestjs/cqrs';
 import { GetPipelineMetricsQuery } from './get-pipeline-metrics.query';
 import { PrismaService } from '@core/database/prisma.service';
+import { MetricsSummaryResponse } from '../services/analyste.service';
 
 @QueryHandler(GetPipelineMetricsQuery)
 export class GetPipelineMetricsHandler implements IQueryHandler<GetPipelineMetricsQuery> {
   constructor(private readonly prisma: PrismaService) {}
 
-  async execute(query: GetPipelineMetricsQuery): Promise<any> {
-    const { dateFrom, dateTo, metricNames } = query;
-    const where: any = { date: { gte: dateFrom, lte: dateTo } };
-    if (metricNames && metricNames.length > 0) {
-      where.metricName = { in: metricNames };
-    }
+  async execute(query: GetPipelineMetricsQuery): Promise<MetricsSummaryResponse> {
+    const { dateFrom, dateTo } = query;
 
-    const metrics = await this.prisma.metriquesDaily.findMany({
-      where,
-      orderBy: { date: 'desc' },
-    });
-
-    const [totalProspects, hotProspects, emailsSent, dealsOpen] = await Promise.all([
-      this.prisma.prospect.count(),
-      this.prisma.prospectScore.count({ where: { isLatest: true, totalScore: { gte: 75 } } }),
-      this.prisma.emailSend.count({ where: { sentAt: { gte: dateFrom } } }),
-      this.prisma.dealCrm.count({ where: { stage: { notIn: ['closed_won', 'closed_lost'] } } }),
+    const [snapshots, alertCount, pendingRecommendations] = await Promise.all([
+      this.prisma.metriquesDaily.findMany({
+        where: { dateSnapshot: { gte: dateFrom, lte: dateTo } },
+        orderBy: { dateSnapshot: 'asc' },
+        take: 100,
+      }),
+      this.prisma.alertes.count({ where: { isResolved: false } }),
+      this.prisma.recommandations.count({ where: { status: 'pending' } }),
     ]);
 
+    const latest = snapshots[snapshots.length - 1];
+
+    const kpis = {
+      totalLeadsGeneres: latest?.pipelineLeadsGeneres ?? 0,
+      suiveurReplyRate: latest?.suiveurReplyRate ?? 0,
+      suiveurBounceRate: latest?.suiveurBounceRate ?? 0,
+      pipelineRdvBookes: latest?.pipelineRdvBookes ?? 0,
+      pipelineDealsGagnes: latest?.pipelineDealsGagnes ?? 0,
+      pipelineRevenuJour: latest?.pipelineRevenuJour ?? 0,
+      coutTotalJourEur: latest?.coutTotalJourEur ?? 0,
+    };
+
+    const trends = snapshots.map((s) => ({
+      date: s.dateSnapshot,
+      leads: s.pipelineLeadsGeneres,
+      replyRate: s.suiveurReplyRate,
+      rdvBookes: s.pipelineRdvBookes,
+      revenu: s.pipelineRevenuJour,
+    }));
+
     return {
-      historical: metrics,
-      realtime: { totalProspects, hotProspects, emailsSent, dealsOpen },
+      period: { from: dateFrom, to: dateTo },
+      kpis,
+      trends,
+      alertCount,
+      pendingRecommendations,
     };
   }
 }

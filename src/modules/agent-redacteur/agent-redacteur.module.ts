@@ -9,6 +9,7 @@ import { PrismaGeneratedMessageRepository } from './infrastructure/repositories/
 import { RedacteurProcessor } from './infrastructure/jobs/redacteur.processor';
 import { LlmModule } from '@modules/llm/llm.module';
 import { QUEUE_NAMES } from '@shared/constants/queue-names.constant';
+import { AgentEventLoggerService } from '@shared/services/agent-event-logger.service';
 
 @Module({
   imports: [
@@ -21,6 +22,7 @@ import { QUEUE_NAMES } from '@shared/constants/queue-names.constant';
     RedacteurService,
     ImpactCalculatorService,
     MessageValidatorService,
+    AgentEventLoggerService,
     RedacteurProcessor,
     { provide: IGeneratedMessageRepository, useClass: PrismaGeneratedMessageRepository },
   ],

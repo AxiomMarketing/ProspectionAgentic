@@ -6,7 +6,11 @@ export const QUEUE_NAMES = {
   SUIVEUR_PIPELINE: 'suiveur-pipeline',
   NURTURER_PIPELINE: 'nurturer-pipeline',
   DEALMAKER_PIPELINE: 'dealmaker-pipeline',
+  APPELS_OFFRES_PIPELINE: 'appels-offres-pipeline',
   CSM_ONBOARDING: 'csm-onboarding',
+  VEILLEUR_REFERRAL_LEADS: 'veilleur-referral-leads',
+  NURTURER_CHURNED_CLIENT: 'nurturer-churned-client',
+  DEALMAKER_UPSELL: 'dealmaker-upsell',
   DEAD_LETTER_QUEUE: 'dead-letter-queue',
 } as const;
 

@@ -155,7 +155,7 @@ Tous les agents → [Slack API] → Jonathan (alertes, rapports, actions requise
 ```
 
 **Budget mensuel :** ~430 EUR
-- LinkedIn APIs (Netrows 99€ + SignalsAPI 99$ + Make.com 29€ + Hunter.io 12€) = ~233€
+- LinkedIn APIs (Netrows 99€ + SignalsAPI 99$ + n8n self-hosted 0€ + Hunter.io 12€) = ~204€
 - Job Boards (Apify 49$ + HasData 50$ + WhoisFreaks 29$) = ~120€
 - Web scanning (Lighthouse, Wappalyzer npm, axe-core) = 0€
 - Marchés publics (BOAMP, DECP) = 0€

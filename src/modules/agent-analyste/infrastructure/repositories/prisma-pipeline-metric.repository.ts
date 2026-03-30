@@ -1,7 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '@core/database/prisma.service';
+import { Prisma } from '@prisma/client';
 import { IPipelineMetricRepository } from '../../domain/repositories/i-pipeline-metric.repository';
 import { PipelineMetric } from '../../domain/entities/pipeline-metric.entity';
+import { DailySnapshot } from '../../domain/entities/pipeline-metric.entity';
 
 @Injectable()
 export class PrismaPipelineMetricRepository extends IPipelineMetricRepository {
@@ -9,53 +11,81 @@ export class PrismaPipelineMetricRepository extends IPipelineMetricRepository {
     super();
   }
 
-  private toDomain(record: any): PipelineMetric {
+  private toDomain(record: { id: string; dateSnapshot: Date; createdAt: Date }): PipelineMetric {
     return PipelineMetric.reconstitute({
       id: record.id,
-      date: record.date,
-      metricName: record.metricName,
-      metricValue: record.metricValue,
-      dimensions: record.dimensions as Record<string, unknown>,
+      date: record.dateSnapshot,
+      metricName: 'snapshot',
+      metricValue: 0,
+      dimensions: {},
       createdAt: record.createdAt,
     });
   }
 
-  async findByDateRange(from: Date, to: Date): Promise<PipelineMetric[]> {
+  async findByDateRange(from: Date, to: Date, take = 100, skip = 0): Promise<PipelineMetric[]> {
     const records = await this.prisma.metriquesDaily.findMany({
-      where: { date: { gte: from, lte: to } },
-      orderBy: { date: 'asc' },
+      where: { dateSnapshot: { gte: from, lte: to } },
+      orderBy: { dateSnapshot: 'asc' },
+      take,
+      skip,
     });
-    return records.map((r: any) => this.toDomain(r));
+    return records.map((r) => this.toDomain(r));
   }
 
-  async findByMetricName(metricName: string): Promise<PipelineMetric[]> {
+  async findByMetricName(_metricName: string): Promise<PipelineMetric[]> {
+    // MetriquesDaily no longer has metricName — return all recent snapshots
     const records = await this.prisma.metriquesDaily.findMany({
-      where: { metricName },
-      orderBy: { date: 'desc' },
+      orderBy: { dateSnapshot: 'desc' },
+      take: 30,
     });
-    return records.map((r: any) => this.toDomain(r));
+    return records.map((r) => this.toDomain(r));
   }
 
   async save(metric: PipelineMetric): Promise<PipelineMetric> {
     const plain = metric.toPlainObject();
-    const record = await this.prisma.metriquesDaily.create({
-      data: {
-        id: plain.id,
-        date: plain.date,
-        metricName: plain.metricName,
-        metricValue: plain.metricValue,
-        dimensions: plain.dimensions as unknown as import('@prisma/client').Prisma.InputJsonValue,
+    const record = await this.prisma.metriquesDaily.upsert({
+      where: { dateSnapshot: plain.date },
+      update: {},
+      create: {
+        dateSnapshot: plain.date,
       },
     });
     return this.toDomain(record);
   }
 
   async aggregateByPeriod(
-    metricName: string,
-    from: Date,
-    to: Date,
-  ): Promise<{ period: string; total: number }[]> {
-    // TODO: implement GROUP BY period aggregation via raw query
-    return [];
+    _metricName: string,
+    dateFrom: Date,
+    dateTo: Date,
+    _period: 'day' | 'week' | 'month' = 'day',
+  ): Promise<unknown[]> {
+    return this.prisma.metriquesDaily.findMany({
+      where: { dateSnapshot: { gte: dateFrom, lte: dateTo } },
+      orderBy: { dateSnapshot: 'asc' },
+    });
+  }
+
+  async findLatestSnapshot(): Promise<DailySnapshot | null> {
+    const record = await this.prisma.metriquesDaily.findFirst({
+      orderBy: { dateSnapshot: 'desc' },
+    });
+    return record as DailySnapshot | null;
+  }
+
+  async upsertSnapshot(date: Date, data: Partial<DailySnapshot>): Promise<DailySnapshot> {
+    const { id: _id, dateSnapshot: _ds, createdAt: _ca, ...rest } = data as DailySnapshot;
+    const prismaData = rest as Prisma.MetriquesDailyUpdateInput;
+
+    const createData: Prisma.MetriquesDailyCreateInput = {
+      dateSnapshot: date,
+      ...(rest as Partial<Prisma.MetriquesDailyCreateInput>),
+    };
+
+    const record = await this.prisma.metriquesDaily.upsert({
+      where: { dateSnapshot: date },
+      update: prismaData,
+      create: createData,
+    });
+    return record as DailySnapshot;
   }
 }

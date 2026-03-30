@@ -2,18 +2,23 @@ import { Prospect } from '../entities/prospect.entity';
 
 export interface ProspectFilter {
   status?: string[];
+  search?: string;
+  segment?: string;
   scoreMin?: number;
   scoreMax?: number;
   source?: string;
   createdAfter?: Date;
   tags?: string[];
+  sortBy?: string;
+  sortOrder?: 'asc' | 'desc';
 }
 
 export interface PaginatedProspects {
   data: Prospect[];
   total: number;
   page: number;
-  pageSize: number;
+  limit: number;
+  totalPages: number;
 }
 
 export abstract class IProspectRepository {

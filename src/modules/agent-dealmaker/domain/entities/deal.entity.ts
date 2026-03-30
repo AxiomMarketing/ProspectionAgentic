@@ -1,10 +1,11 @@
 export enum DealStage {
-  DISCOVERY = 'DISCOVERY',
   QUALIFICATION = 'QUALIFICATION',
-  PROPOSAL = 'PROPOSAL',
-  NEGOTIATION = 'NEGOTIATION',
-  CLOSED_WON = 'CLOSED_WON',
-  CLOSED_LOST = 'CLOSED_LOST',
+  DEVIS_CREE = 'DEVIS_CREE',
+  DEVIS_EN_CONSIDERATION = 'DEVIS_EN_CONSIDERATION',
+  NEGOCIATION = 'NEGOCIATION',
+  SIGNATURE_EN_COURS = 'SIGNATURE_EN_COURS',
+  GAGNE = 'GAGNE',
+  PERDU = 'PERDU',
 }
 
 export interface StageHistoryEntry {
@@ -31,12 +32,13 @@ export interface DealProps {
 
 export class Deal {
   private static readonly VALID_TRANSITIONS: Record<string, string[]> = {
-    DISCOVERY: ['QUALIFICATION', 'CLOSED_LOST'],
-    QUALIFICATION: ['PROPOSAL', 'CLOSED_LOST'],
-    PROPOSAL: ['NEGOTIATION', 'CLOSED_LOST'],
-    NEGOTIATION: ['CLOSED_WON', 'CLOSED_LOST'],
-    CLOSED_WON: [],
-    CLOSED_LOST: [],
+    QUALIFICATION: ['DEVIS_CREE', 'PERDU'],
+    DEVIS_CREE: ['DEVIS_EN_CONSIDERATION', 'PERDU'],
+    DEVIS_EN_CONSIDERATION: ['NEGOCIATION', 'SIGNATURE_EN_COURS', 'PERDU'],
+    NEGOCIATION: ['SIGNATURE_EN_COURS', 'PERDU'],
+    SIGNATURE_EN_COURS: ['GAGNE', 'NEGOCIATION', 'PERDU'],
+    GAGNE: [],
+    PERDU: [],
   };
 
   private constructor(private readonly props: DealProps) {}
@@ -51,8 +53,8 @@ export class Deal {
     return new Deal({
       ...params,
       id: crypto.randomUUID(),
-      stage: DealStage.DISCOVERY,
-      stageHistory: [{ stage: DealStage.DISCOVERY, enteredAt: now }],
+      stage: DealStage.QUALIFICATION,
+      stageHistory: [{ stage: DealStage.QUALIFICATION, enteredAt: now }],
       createdAt: now,
       updatedAt: now,
     });
@@ -110,6 +112,9 @@ export class Deal {
     if (!allowed.includes(newStage)) {
       throw new Error(`Invalid transition: ${this.props.stage} → ${newStage}`);
     }
+    if (newStage === DealStage.GAGNE || newStage === DealStage.PERDU) {
+      throw new Error(`Use close() to transition to ${newStage}`);
+    }
     return new Deal({
       ...this.props,
       stage: newStage,
@@ -119,7 +124,11 @@ export class Deal {
   }
 
   close(won: boolean, reason: string): Deal {
-    const stage = won ? DealStage.CLOSED_WON : DealStage.CLOSED_LOST;
+    const stage = won ? DealStage.GAGNE : DealStage.PERDU;
+    const currentAllowed = Deal.VALID_TRANSITIONS[this.props.stage] ?? [];
+    if (!currentAllowed.includes(stage)) {
+      throw new Error(`Invalid transition: ${this.props.stage} → ${stage}`);
+    }
     return new Deal({
       ...this.props,
       stage,

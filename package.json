@@ -25,7 +25,7 @@
     "prisma:seed": "ts-node prisma/seed.ts"
   },
   "dependencies": {
-    "@anthropic-ai/sdk": "^0.39.0",
+    "@anthropic-ai/sdk": "^0.80.0",
     "@nestjs/axios": "^4.0.1",
     "@nestjs/bullmq": "^11.0.0",
     "@nestjs/common": "^11.0.0",
@@ -36,16 +36,26 @@
     "@nestjs/jwt": "^11.0.0",
     "@nestjs/passport": "^11.0.0",
     "@nestjs/platform-express": "^11.0.0",
+    "@nestjs/schedule": "^6.1.1",
     "@nestjs/swagger": "^11.0.0",
     "@nestjs/terminus": "^11.0.0",
     "@nestjs/throttler": "^6.0.0",
     "@prisma/client": "^6.0.0",
+    "@types/bcrypt": "^6.0.0",
+    "@types/cookie-parser": "^1.4.10",
+    "apify-client": "^2.22.3",
+    "axe-core": "^4.11.1",
     "axios": "^1.13.6",
+    "bcrypt": "^6.0.0",
     "bullmq": "^5.0.0",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.0",
+    "cookie-parser": "^1.4.7",
+    "googleapis": "^171.4.0",
     "helmet": "^8.0.0",
     "ioredis": "^5.0.0",
+    "langfuse": "^3.38.6",
+    "lighthouse": "^13.0.3",
     "nestjs-pino": "^4.0.0",
     "passport": "^0.7.0",
     "passport-jwt": "^4.0.0",
@@ -53,8 +63,10 @@
     "pino-http": "^10.0.0",
     "pino-pretty": "^13.0.0",
     "reflect-metadata": "^0.2.0",
+    "rss-parser": "^3.13.0",
     "rxjs": "^7.0.0",
     "uuid": "^11.0.0",
+    "wappalyzer-core": "^7.0.3",
     "zod": "^3.24.0"
   },
   "devDependencies": {
@@ -80,6 +92,9 @@
     "ts-node": "^10.9.0",
     "tsconfig-paths": "^4.2.0",
     "typescript": "^5.7.0"
+  },
+  "prisma": {
+    "seed": "ts-node prisma/seed.ts"
   },
   "jest": {
     "moduleFileExtensions": [

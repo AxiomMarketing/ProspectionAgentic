@@ -1,16 +1,29 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, OnModuleDestroy } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { MODEL_PRICING } from './llm.types';
+import * as IORedis from 'ioredis';
+const Redis = (IORedis as any).default ?? IORedis;
 
 @Injectable()
-export class CostTrackerService {
+export class CostTrackerService implements OnModuleDestroy {
   private readonly logger = new Logger(CostTrackerService.name);
-  private dailySpend = 0;
-  private monthlySpend = 0;
-  private lastResetDay = new Date().toISOString().split('T')[0];
-  private lastResetMonth = new Date().toISOString().substring(0, 7);
+  private readonly redis: InstanceType<typeof Redis>;
 
-  constructor(private readonly configService: ConfigService) {}
+  constructor(private readonly configService: ConfigService) {
+    const redisUrl = this.configService.get<string>('REDIS_URL', 'redis://localhost:6379');
+    this.redis = new Redis(redisUrl, {
+      lazyConnect: true,
+      enableOfflineQueue: false,
+      maxRetriesPerRequest: 1,
+    });
+    this.redis.on('error', (err: Error) => {
+      this.logger.warn({ msg: 'Redis connection error in CostTracker', error: err.message });
+    });
+  }
+
+  onModuleDestroy(): void {
+    this.redis.disconnect();
+  }
 
   calculateCost(model: string, inputTokens: number, outputTokens: number): number {
     const pricing = MODEL_PRICING[model];
@@ -18,21 +31,23 @@ export class CostTrackerService {
     return (inputTokens * pricing.input + outputTokens * pricing.output) / 1_000_000;
   }
 
-  checkBudget(): boolean {
-    this.resetIfNeeded();
+  async checkBudget(): Promise<boolean> {
     const dailyLimit = this.configService.get<number>('llm.dailyBudgetEur', 25);
     const monthlyLimit = this.configService.get<number>('llm.monthlyBudgetEur', 500);
 
-    if (this.dailySpend >= dailyLimit) {
+    const dailySpend = await this.getDailySpend();
+    const monthlySpend = await this.getMonthlySpend();
+
+    if (dailySpend >= dailyLimit) {
       this.logger.warn(
-        { dailySpend: this.dailySpend, limit: dailyLimit },
+        { dailySpend, limit: dailyLimit },
         'Daily LLM budget exceeded',
       );
       return false;
     }
-    if (this.monthlySpend >= monthlyLimit) {
+    if (monthlySpend >= monthlyLimit) {
       this.logger.warn(
-        { monthlySpend: this.monthlySpend, limit: monthlyLimit },
+        { monthlySpend, limit: monthlyLimit },
         'Monthly LLM budget exceeded',
       );
       return false;
@@ -40,29 +55,34 @@ export class CostTrackerService {
     return true;
   }
 
-  record(model: string, inputTokens: number, outputTokens: number): number {
-    this.resetIfNeeded();
+  async record(model: string, inputTokens: number, outputTokens: number): Promise<number> {
     const cost = this.calculateCost(model, inputTokens, outputTokens);
-    this.dailySpend += cost;
-    this.monthlySpend += cost;
+
+    const dailyKey = `cost:daily:${new Date().toISOString().slice(0, 10)}`;
+    await this.redis.incrbyfloat(dailyKey, cost);
+    await this.redis.expire(dailyKey, 86400 * 2);
+
+    const monthlyKey = `cost:monthly:${new Date().toISOString().slice(0, 7)}`;
+    await this.redis.incrbyfloat(monthlyKey, cost);
+    await this.redis.expire(monthlyKey, 86400 * 35);
+
     return cost;
   }
 
-  getSpend(): { daily: number; monthly: number } {
-    this.resetIfNeeded();
-    return { daily: this.dailySpend, monthly: this.monthlySpend };
+  async getDailySpend(): Promise<number> {
+    const dailyKey = `cost:daily:${new Date().toISOString().slice(0, 10)}`;
+    const val = await this.redis.get(dailyKey);
+    return val ? parseFloat(val) : 0;
   }
 
-  private resetIfNeeded(): void {
-    const today = new Date().toISOString().split('T')[0];
-    const month = new Date().toISOString().substring(0, 7);
-    if (today !== this.lastResetDay) {
-      this.dailySpend = 0;
-      this.lastResetDay = today;
-    }
-    if (month !== this.lastResetMonth) {
-      this.monthlySpend = 0;
-      this.lastResetMonth = month;
-    }
+  async getMonthlySpend(): Promise<number> {
+    const monthlyKey = `cost:monthly:${new Date().toISOString().slice(0, 7)}`;
+    const val = await this.redis.get(monthlyKey);
+    return val ? parseFloat(val) : 0;
+  }
+
+  async getSpend(): Promise<{ daily: number; monthly: number }> {
+    const [daily, monthly] = await Promise.all([this.getDailySpend(), this.getMonthlySpend()]);
+    return { daily, monthly };
   }
 }

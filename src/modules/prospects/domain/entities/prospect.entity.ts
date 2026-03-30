@@ -10,7 +10,8 @@ export type ProspectStatus =
   | 'lost'
   | 'nurturing'
   | 'blacklisted'
-  | 'unsubscribed';
+  | 'unsubscribed'
+  | 'excluded';
 
 export interface ProspectProps {
   id: string;

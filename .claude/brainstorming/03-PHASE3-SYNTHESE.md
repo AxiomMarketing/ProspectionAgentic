@@ -15,7 +15,7 @@
 Les systèmes de prospection qui fonctionnent en production ont tous un point commun : ils sont linéaires et simples. Les exemples réels (11x.ai, Apollo.io, Artisan/Ava) utilisent 3-5 agents maximum, pas 40. La complexité est l'ennemi de la fiabilité.
 
 **n8n + code custom hybride :**
-Les équipes qui réussissent utilisent n8n (ou Make.com) pour l'orchestration visuelle et les intégrations standard, et du code TypeScript custom uniquement pour la logique métier irréductible (scoring déterministe, génération Claude, parsing PDF). Cela réduit de 60-70% le code à maintenir.
+Les équipes qui réussissent utilisent n8n self-hosted pour l'orchestration visuelle et les intégrations standard, et du code TypeScript custom uniquement pour la logique métier irréductible (scoring déterministe, génération Claude, parsing PDF). Cela réduit de 60-70% le code à maintenir.
 
 **PostgreSQL + Redis (pas Kafka, pas event sourcing) :**
 Les systèmes de prospection ne sont pas des systèmes financiers. La complexité d'un event store n'est pas justifiée au départ. PostgreSQL pour la persistance + Redis pour le cache/queues = largement suffisant pour les 12 premiers mois. L'event sourcing peut être ajouté plus tard si nécessaire.

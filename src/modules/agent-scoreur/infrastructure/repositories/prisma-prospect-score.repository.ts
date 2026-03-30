@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { PrismaService } from '@core/database/prisma.service';
 import { IProspectScoreRepository } from '../../domain/repositories/i-prospect-score.repository';
 import { ProspectScore } from '../../domain/entities/prospect-score.entity';
-import { ProspectScore as PrismaProspectScore } from '@prisma/client';
+import { Prisma, ProspectScore as PrismaProspectScore } from '@prisma/client';
 
 @Injectable()
 export class PrismaProspectScoreRepository extends IProspectScoreRepository {
@@ -46,29 +46,33 @@ export class PrismaProspectScoreRepository extends IProspectScoreRepository {
   async save(score: ProspectScore): Promise<ProspectScore> {
     const plain = score.toPlainObject();
 
-    const [, created] = await this.prisma.$transaction([
-      this.prisma.prospectScore.updateMany({
-        where: { prospectId: plain.prospectId, isLatest: true },
-        data: { isLatest: false },
-      }),
-      this.prisma.prospectScore.create({
-        data: {
-          id: plain.id,
-          prospectId: plain.prospectId,
-          totalScore: plain.totalScore,
-          firmographicScore: plain.firmographicScore,
-          technographicScore: plain.technographicScore,
-          behavioralScore: plain.behavioralScore,
-          engagementScore: plain.engagementScore,
-          intentScore: plain.intentScore,
-          accessibilityScore: plain.accessibilityScore,
-          segment: plain.segment,
-          isLatest: plain.isLatest,
-          modelVersion: plain.modelVersion,
-          calculatedAt: plain.calculatedAt,
-        },
-      }),
-    ]);
+    const [, created] = await this.prisma.$transaction(
+      [
+        this.prisma.prospectScore.updateMany({
+          where: { prospectId: plain.prospectId, isLatest: true },
+          data: { isLatest: false },
+        }),
+        this.prisma.prospectScore.create({
+          data: {
+            id: plain.id,
+            prospectId: plain.prospectId,
+            totalScore: plain.totalScore,
+            firmographicScore: plain.firmographicScore,
+            technographicScore: plain.technographicScore,
+            behavioralScore: plain.behavioralScore,
+            engagementScore: plain.engagementScore,
+            intentScore: plain.intentScore,
+            accessibilityScore: plain.accessibilityScore,
+            segment: plain.segment,
+            scoreBreakdown: plain.category ? { category: plain.category } : undefined,
+            isLatest: plain.isLatest,
+            modelVersion: plain.modelVersion,
+            calculatedAt: plain.calculatedAt,
+          },
+        }),
+      ],
+      { isolationLevel: Prisma.TransactionIsolationLevel.Serializable },
+    );
     return this.toDomain(created);
   }
 }

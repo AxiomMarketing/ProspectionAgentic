@@ -6,6 +6,28 @@ import { MockLlmAdapter } from './adapters/mock-llm.adapter';
 import { ILlmAdapter } from '@common/ports/i-llm.adapter';
 import { LlmTask } from './llm.types';
 
+// Mock ioredis to avoid needing a real Redis connection in unit tests
+const llmRedisStore: Record<string, number> = {};
+const resetLlmRedisStore = () => { Object.keys(llmRedisStore).forEach((k) => delete llmRedisStore[k]); };
+
+jest.mock('ioredis', () => {
+  const MockRedis = jest.fn().mockImplementation(() => ({
+    on: jest.fn(),
+    disconnect: jest.fn(),
+    get: jest.fn(async (key: string) => {
+      const v = llmRedisStore[key];
+      return v !== undefined ? String(v) : null;
+    }),
+    incrbyfloat: jest.fn(async (key: string, delta: number) => {
+      llmRedisStore[key] = (llmRedisStore[key] ?? 0) + delta;
+      return llmRedisStore[key];
+    }),
+    expire: jest.fn(async () => 1),
+  }));
+  (MockRedis as any).default = MockRedis;
+  return MockRedis;
+});
+
 describe('LlmService', () => {
   let service: LlmService;
   let mockAdapter: MockLlmAdapter;
@@ -20,6 +42,8 @@ describe('LlmService', () => {
   };
 
   beforeEach(async () => {
+    resetLlmRedisStore();
+
     mockAdapter = new MockLlmAdapter();
 
     const module: TestingModule = await Test.createTestingModule({
@@ -61,7 +85,7 @@ describe('LlmService', () => {
     });
 
     it('records cost after successful call', async () => {
-      const spendBefore = costTracker.getSpend();
+      const spendBefore = await costTracker.getSpend();
       expect(spendBefore.daily).toBe(0);
 
       await service.call({
@@ -71,7 +95,7 @@ describe('LlmService', () => {
       });
 
       // MockLlmAdapter returns 10 input + 5 output tokens
-      const spendAfter = costTracker.getSpend();
+      const spendAfter = await costTracker.getSpend();
       expect(spendAfter.daily).toBeGreaterThan(0);
     });
 
@@ -98,7 +122,7 @@ describe('LlmService', () => {
       // Exhaust daily budget (25 EUR)
       // haiku: 1M input = 0.8 EUR, need 32 iterations
       for (let i = 0; i < 32; i++) {
-        costTracker.record('claude-haiku-3-5-20241022', 1_000_000, 0);
+        await costTracker.record('claude-haiku-3-5-20241022', 1_000_000, 0);
       }
 
       await expect(

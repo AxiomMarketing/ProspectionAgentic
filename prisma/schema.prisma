@@ -22,6 +22,7 @@ enum ProspectStatus {
   nurturing
   blacklisted
   unsubscribed
+  excluded
 }
 
 enum ChannelType {
@@ -53,18 +54,25 @@ enum ReplySentiment {
 }
 
 enum TenderStatus {
-  open
-  closed
-  awarded
-  cancelled
+  DETECTED
+  ANALYZING
+  QUALIFIED
+  GO
+  IN_PROGRESS
+  SUBMITTED
+  WON
+  LOST
+  IGNORED
 }
 
 enum DealStage {
-  discovery
-  proposal
-  negotiation
-  closed_won
-  closed_lost
+  QUALIFICATION
+  DEVIS_CREE
+  DEVIS_EN_CONSIDERATION
+  NEGOCIATION
+  SIGNATURE_EN_COURS
+  GAGNE
+  PERDU
 }
 
 enum AlertSeverity {
@@ -109,6 +117,7 @@ model Prospect {
   isDecisionMaker  Boolean @default(false)
 
   status          ProspectStatus @default(raw)
+  source          String?
   enrichmentData  Json?
   enrichedAt      DateTime?
 
@@ -130,6 +139,7 @@ model Prospect {
   nurtureInteractions   NurtureInteraction[]
   customerContacts      Customer[]
   quotes                Quote[]
+  touchpoints           Touchpoint[]
 
   @@index([status])
   @@index([email])
@@ -372,6 +382,7 @@ model ReplyClassification {
   actionTakenAt DateTime?
   actionTakenBy String?
 
+  @@index([prospectId])
   @@map("reply_classifications")
 }
 
@@ -445,6 +456,34 @@ model NurtureProspect {
   notes            String?
   tags             String[]
 
+  sequenceType          String?
+  currentStep           Int       @default(0)
+  totalSteps            Int       @default(12)
+  segment               String?
+  scoringCategorie      String?
+  journeyStage          String    @default("awareness")
+
+  engagementScoreInitial  Float   @default(0)
+  engagementScoreCurrent  Float   @default(0)
+  lastScoreUpdate         DateTime?
+
+  emailsNurtureSent       Int     @default(0)
+  emailsOpened            Int     @default(0)
+  emailsClicked           Int     @default(0)
+  repliesReceived         Int     @default(0)
+  contentDownloaded       Int     @default(0)
+  consecutiveUnopened     Int     @default(0)
+
+  nextEmailScheduledAt    DateTime?
+  nextRescoreAt           DateTime?
+  lastInteractionAt       DateTime?
+  lastEmailSentAt         DateTime?
+  inactiveSince           DateTime?
+
+  consentBasis            String   @default("legitimate_interest")
+  optOutAt                DateTime?
+  dataRetentionUntil      DateTime?
+
   interactions NurtureInteraction[]
 
   @@map("nurture_prospects")
@@ -471,6 +510,12 @@ model NurtureInteraction {
 
   replySentiment ReplySentiment?
 
+  scoreDelta    Float?
+  scoreAfter    Float?
+  details       Json?
+
+  @@index([prospectId])
+  @@index([nurtureId])
   @@map("nurture_interactions")
 }
 
@@ -486,19 +531,42 @@ model DealCrm {
   customer   Customer? @relation(fields: [customerId], references: [id])
 
   title             String
-  stage             DealStage @default(discovery)
+  stage             DealStage @default(QUALIFICATION)
   amountEur         Float?
   probability       Float?
   expectedCloseDate DateTime?
   closedAt          DateTime?
   wonReason         String?
   lostReason        String?
+  lostAt            DateTime?
   ownerEmail        String?
   quoteId           String?
   tenderId          String?
   stageHistory      Json?
 
-  quote Quote?
+  devisId              String?
+  devisUrl             String?
+  devisEnvoyeAt        DateTime?
+  trackingId           String?
+  yousignRequestId     String?
+  yousignDocumentId    String?
+  yousignSignerId      String?
+  contratEnvoyeAt      DateTime?
+  contratSigneUrl      String?
+  dateSignature        DateTime?
+  nbRelances           Int       @default(0)
+  derniereRelanceAt    DateTime?
+  derniereObjection    String?
+  rdvNotes             Json?
+  typeProjet           String?
+  tierRecommande       String?
+  tierFinal            String?
+  segment              String?
+  canalPrincipal       String?
+
+  quote           Quote?
+  engagementScore EngagementScore?
+  activities      DealActivity[]
 
   @@index([stage])
   @@index([prospectId])
@@ -536,6 +604,57 @@ model Quote {
   @@map("quotes")
 }
 
+model EngagementScore {
+  id          String   @id @default(uuid())
+  dealId      String   @unique
+  deal        DealCrm  @relation(fields: [dealId], references: [id])
+  score       Int      @default(0)
+  signals     Json     @default("[]")
+  lastUpdated DateTime @default(now())
+  @@map("engagement_scores")
+}
+
+model DealActivity {
+  id              String   @id @default(uuid())
+  dealId          String
+  deal            DealCrm  @relation(fields: [dealId], references: [id])
+  type            String
+  step            Int?
+  engagementDelta Int?
+  details         Json?
+  createdAt       DateTime @default(now())
+  @@index([dealId])
+  @@map("deal_activities")
+}
+
+model DevisTracking {
+  id           String      @id @default(uuid())
+  devisId      String
+  pdfUrl       String
+  opens        Int         @default(0)
+  lastOpenedAt DateTime?
+  createdAt    DateTime    @default(now())
+  trackingOpens DevisOpen[]
+  @@map("devis_tracking")
+}
+
+model DevisOpen {
+  id         String        @id @default(uuid())
+  trackingId String
+  tracking   DevisTracking @relation(fields: [trackingId], references: [id])
+  openedAt   DateTime      @default(now())
+  ipAddress  String?
+  userAgent  String?
+  @@index([trackingId])
+  @@map("devis_opens")
+}
+
+model WebhookEvent {
+  eventId     String   @id
+  processedAt DateTime @default(now())
+  @@map("webhook_events")
+}
+
 model PublicTender {
   id        String   @id @default(uuid())
   createdAt DateTime @default(now())
@@ -556,17 +675,179 @@ model PublicTender {
   estimatedAmount  Float?
   estimatedBudget  Float?
 
+  cpvCodes         String[]
+  departement      String?
+
   dceFitScore      Float?
   dceAnalyzed      Boolean @default(false)
   dceAnalysisResult Json?
   langfuseTraceId  String?
 
-  status TenderStatus @default(open)
+  status TenderStatus @default(DETECTED)
+
+  aoAnalyse AoAnalyse?
 
   @@unique([source, sourceId])
   @@index([status])
   @@index([deadlineDate])
   @@map("public_tenders")
+}
+
+model AoAnalyse {
+  id        String   @id @default(uuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  tenderId String      @unique
+  tender   PublicTender @relation(fields: [tenderId], references: [id])
+
+  status          String  @default("pending")
+  currentStep     String?
+  errorMessage    String?
+
+  scoreTotal      Float?
+  scorePertinence Float?
+  scoreCompetence Float?
+  scoreBudget     Float?
+  scoreConcurrence Float?
+  decision        String?
+  decisionReason  String?
+
+  dceRawText      String?
+  dcePages        Int?
+  langfuseTraceId String?
+
+  exigences       AoExigence[]
+  questions       AoQuestion[]
+  dossierAdmin    AoDossierAdmin?
+  offreFinanciere AoOffreFinanciere?
+  memoireTechnique AoMemoireTechnique?
+  controleQa      AoControleQa?
+
+  @@index([tenderId])
+  @@index([status])
+  @@map("ao_analyses")
+}
+
+model AoExigence {
+  id        String   @id @default(uuid())
+  createdAt DateTime @default(now())
+
+  analyseId String
+  analyse   AoAnalyse @relation(fields: [analyseId], references: [id])
+
+  type        String
+  description String
+  mandatory   Boolean @default(true)
+  met         Boolean?
+  comment     String?
+
+  @@index([analyseId])
+  @@map("ao_exigences")
+}
+
+model AoQuestion {
+  id        String   @id @default(uuid())
+  createdAt DateTime @default(now())
+
+  analyseId String
+  analyse   AoAnalyse @relation(fields: [analyseId], references: [id])
+
+  question    String
+  category    String?
+  priority    Int     @default(5)
+  answer      String?
+  answeredAt  DateTime?
+
+  @@index([analyseId])
+  @@map("ao_questions")
+}
+
+model AoDossierAdmin {
+  id        String   @id @default(uuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  analyseId String    @unique
+  analyse   AoAnalyse @relation(fields: [analyseId], references: [id])
+
+  status          String @default("pending")
+  dc1Generated    Boolean @default(false)
+  dc2Generated    Boolean @default(false)
+  kbisChecked     Boolean @default(false)
+  assuranceChecked Boolean @default(false)
+  referencesAdded Boolean @default(false)
+
+  documents Json?
+  notes     String?
+
+  @@map("ao_dossiers_admin")
+}
+
+model AoOffreFinanciere {
+  id        String   @id @default(uuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  analyseId String    @unique
+  analyse   AoAnalyse @relation(fields: [analyseId], references: [id])
+
+  status           String @default("pending")
+  montantHtEur     Float?
+  montantTtcEur    Float?
+  tauxTva          Float  @default(0.20)
+  margeEstimee     Float?
+  chargeJours      Float?
+  tauxJournalier   Float?
+  decomposition    Json?
+  variantes        Json?
+  notes            String?
+
+  @@map("ao_offres_financieres")
+}
+
+model AoMemoireTechnique {
+  id        String   @id @default(uuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  analyseId String    @unique
+  analyse   AoAnalyse @relation(fields: [analyseId], references: [id])
+
+  status          String @default("pending")
+  approche        String?
+  methodologie    String?
+  planningJson    Json?
+  equipeJson      Json?
+  referencesJson  Json?
+  differenciants  String?
+  wordCount       Int?
+  aiScoreRisk     Float?
+  humanizedAt     DateTime?
+  pdfUrl          String?
+  langfuseTraceId String?
+
+  @@map("ao_memoires_techniques")
+}
+
+model AoControleQa {
+  id        String   @id @default(uuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  analyseId String    @unique
+  analyse   AoAnalyse @relation(fields: [analyseId], references: [id])
+
+  status            String @default("pending")
+  checksJson        Json?
+  errorsFound       Int    @default(0)
+  warningsFound     Int    @default(0)
+  approved          Boolean @default(false)
+  approvedAt        DateTime?
+  rejectionReason   String?
+  langfuseTraceId   String?
+
+  @@map("ao_controles_qa")
 }
 
 model Customer {
@@ -591,10 +872,28 @@ model Customer {
   externalCrmId     String?
   notes             String?
 
-  healthScores CustomerHealthScore[]
-  deals        DealCrm[]
+  typeProjet            String?
+  tier                  String?
+  scopeDetaille         Json?
+  conditionsPaiement    String?
+  notesVente            String?
+  dealCycleDays         Int?
+  engagementScoreFinal  Float?
+
+  healthScores          CustomerHealthScore[]
+  deals                 DealCrm[]
+  onboardingSteps       OnboardingStep[]
+  onboardingRisks       OnboardingRisk[]
+  upsellOpportunities   UpsellOpportunity[]
+  reviewRequests        ReviewRequest[]
+  referralProgram       ReferralProgram?
+  npsSurveys            NpsSurvey[]
+  churnSignals          ChurnSignal[]
+  projectMilestones     ProjectMilestone[]
+  renewalOpportunities  RenewalOpportunity[]
 
   @@index([status])
+  @@index([typeProjet])
   @@map("customers")
 }
 
@@ -620,14 +919,102 @@ model CustomerHealthScore {
 }
 
 model MetriquesDaily {
-  id          String   @id @default(uuid())
-  date        DateTime @db.Date
-  metricName  String
-  metricValue Float
-  dimensions  Json?
-  createdAt   DateTime @default(now())
+  id              String   @id @default(uuid())
+  dateSnapshot    DateTime @unique @map("date_snapshot")
 
-  @@unique([date, metricName])
+  // Agent 1: Veilleur
+  veilleurLeadsBruts        Int     @default(0) @map("veilleur_leads_bruts")
+  veilleurLeadsLinkedin     Int     @default(0) @map("veilleur_leads_linkedin")
+  veilleurLeadsMarches      Int     @default(0) @map("veilleur_leads_marches")
+  veilleurLeadsWeb          Int     @default(0) @map("veilleur_leads_web")
+  veilleurLeadsJobboards    Int     @default(0) @map("veilleur_leads_jobboards")
+  veilleurLeadsQualifies    Int     @default(0) @map("veilleur_leads_qualifies")
+  veilleurPreScoreMoyen     Float   @default(0) @map("veilleur_pre_score_moyen")
+  veilleurTauxDeduplication Float   @default(0) @map("veilleur_taux_deduplication")
+  veilleurCoutApiEur        Float   @default(0) @map("veilleur_cout_api_eur")
+
+  // Agent 2: Enrichisseur
+  enrichisseurProspectsTraites    Int     @default(0) @map("enrichisseur_prospects_traites")
+  enrichisseurEmailsTrouves      Int     @default(0) @map("enrichisseur_emails_trouves")
+  enrichisseurEmailsNonTrouves   Int     @default(0) @map("enrichisseur_emails_non_trouves")
+  enrichisseurTauxEnrichissement Float   @default(0) @map("enrichisseur_taux_enrichissement")
+  enrichisseurTauxEmailValide    Float   @default(0) @map("enrichisseur_taux_email_valide")
+  enrichisseurTempsMoyenMs       Int     @default(0) @map("enrichisseur_temps_moyen_ms")
+  enrichisseurCoutApiEur         Float   @default(0) @map("enrichisseur_cout_api_eur")
+
+  // Agent 3: Scoreur
+  scoreurProspectsScores     Int     @default(0) @map("scoreur_prospects_scores")
+  scoreurNbHot              Int     @default(0) @map("scoreur_nb_hot")
+  scoreurNbWarm             Int     @default(0) @map("scoreur_nb_warm")
+  scoreurNbCold             Int     @default(0) @map("scoreur_nb_cold")
+  scoreurNbDisqualifie      Int     @default(0) @map("scoreur_nb_disqualifie")
+  scoreurScoreMoyen         Float   @default(0) @map("scoreur_score_moyen")
+  scoreurPctHot             Float   @default(0) @map("scoreur_pct_hot")
+  scoreurPctWarm            Float   @default(0) @map("scoreur_pct_warm")
+  scoreurPctCold            Float   @default(0) @map("scoreur_pct_cold")
+  scoreurPctDisqualifie     Float   @default(0) @map("scoreur_pct_disqualifie")
+  scoreurReclassifications  Int     @default(0) @map("scoreur_reclassifications")
+
+  // Agent 4: Redacteur
+  redacteurMessagesGeneres          Int     @default(0) @map("redacteur_messages_generes")
+  redacteurCoutGenerationEur        Float   @default(0) @map("redacteur_cout_generation_eur")
+  redacteurTempsMoyenGenerationMs   Int     @default(0) @map("redacteur_temps_moyen_generation_ms")
+  redacteurTemplatesActifs          Int     @default(0) @map("redacteur_templates_actifs")
+  redacteurAbTestsEnCours           Int     @default(0) @map("redacteur_ab_tests_en_cours")
+
+  // Agent 5: Suiveur
+  suiveurEmailsEnvoyes         Int     @default(0) @map("suiveur_emails_envoyes")
+  suiveurLinkedinConnections   Int     @default(0) @map("suiveur_linkedin_connections")
+  suiveurLinkedinMessages      Int     @default(0) @map("suiveur_linkedin_messages")
+  suiveurEmailsBounced         Int     @default(0) @map("suiveur_emails_bounced")
+  suiveurBounceRate            Float   @default(0) @map("suiveur_bounce_rate")
+  suiveurReponsesTotal         Int     @default(0) @map("suiveur_reponses_total")
+  suiveurReponsesPositives     Int     @default(0) @map("suiveur_reponses_positives")
+  suiveurReponsesNegatives     Int     @default(0) @map("suiveur_reponses_negatives")
+  suiveurReponsesPasMaintenant Int     @default(0) @map("suiveur_reponses_pas_maintenant")
+  suiveurReplyRate             Float   @default(0) @map("suiveur_reply_rate")
+  suiveurPositiveReplyRate     Float   @default(0) @map("suiveur_positive_reply_rate")
+  suiveurSequencesActives      Int     @default(0) @map("suiveur_sequences_actives")
+  suiveurSequencesCompletees   Int     @default(0) @map("suiveur_sequences_completees")
+  suiveurSlaBreaches           Int     @default(0) @map("suiveur_sla_breaches")
+  suiveurOptOuts               Int     @default(0) @map("suiveur_opt_outs")
+  suiveurCoutEur               Float   @default(0) @map("suiveur_cout_eur")
+
+  // Agent 6: Nurtureur
+  nurtureurTotalEnNurture        Int     @default(0) @map("nurtureur_total_en_nurture")
+  nurtureurNouveauxEntres        Int     @default(0) @map("nurtureur_nouveaux_entres")
+  nurtureurEmailsNurtureEnvoyes  Int     @default(0) @map("nurtureur_emails_nurture_envoyes")
+  nurtureurTauxOuverture         Float   @default(0) @map("nurtureur_taux_ouverture")
+  nurtureurTauxClic              Float   @default(0) @map("nurtureur_taux_clic")
+  nurtureurReclassifiesHot       Int     @default(0) @map("nurtureur_reclassifies_hot")
+  nurtureurSunset                Int     @default(0) @map("nurtureur_sunset")
+  nurtureurOptOuts               Int     @default(0) @map("nurtureur_opt_outs")
+  nurtureurEngagementScoreMoyen  Float   @default(0) @map("nurtureur_engagement_score_moyen")
+  nurtureurCoutEur               Float   @default(0) @map("nurtureur_cout_eur")
+
+  // Pipeline global
+  pipelineLeadsGeneres          Int     @default(0) @map("pipeline_leads_generes")
+  pipelineProspectsContactes    Int     @default(0) @map("pipeline_prospects_contactes")
+  pipelineReponsesPositives     Int     @default(0) @map("pipeline_reponses_positives")
+  pipelineRdvBookes             Int     @default(0) @map("pipeline_rdv_bookes")
+  pipelinePropositionsEnvoyees  Int     @default(0) @map("pipeline_propositions_envoyees")
+  pipelineDealsGagnes           Int     @default(0) @map("pipeline_deals_gagnes")
+  pipelineDealsPerdus           Int     @default(0) @map("pipeline_deals_perdus")
+  pipelineRevenuJour            Float   @default(0) @map("pipeline_revenu_jour")
+  pipelineValeurTotale          Float   @default(0) @map("pipeline_valeur_totale")
+  pipelineVelocityJour          Float   @default(0) @map("pipeline_velocity_jour")
+
+  // Couts
+  coutTotalJourEur       Float   @default(0) @map("cout_total_jour_eur")
+  coutClaudeApiEur       Float   @default(0) @map("cout_claude_api_eur")
+  coutApisExternesEur    Float   @default(0) @map("cout_apis_externes_eur")
+  coutInfrastructureEur  Float   @default(0) @map("cout_infrastructure_eur")
+
+  // Metadata
+  snapshotVersion  String   @default("1.0") @map("snapshot_version")
+  createdAt        DateTime @default(now()) @map("created_at")
+
+  @@index([dateSnapshot])
   @@map("metriques_daily")
 }
 
@@ -699,6 +1086,68 @@ model RgpdBlacklist {
   @@map("rgpd_blacklist")
 }
 
+model AuditTechnique {
+  id        String   @id @default(uuid())
+  createdAt DateTime @default(now())
+
+  url            String
+  entrepriseNom  String?
+
+  lhPerformance    Int?
+  lhAccessibility  Int?
+  lhBestPractices  Int?
+  lhSeo            Int?
+  lhMetrics        Json?
+
+  stackCms        String?
+  stackCmsVersion String?
+  stackFramework  String?
+  stackServer     String?
+  stackComplete   Json?
+
+  axeViolations Int @default(0)
+  axeCritical   Int @default(0)
+  axeSerious    Int @default(0)
+
+  sslValid         Boolean?
+  sslDaysRemaining Int?
+
+  hasSitemap   Boolean?
+  hasRobotsTxt Boolean?
+  pageWeightMb Float?
+
+  screenshotPath String?
+
+  scoreTechnique Int     @default(0)
+  classification String?
+  reasons        String[]
+
+  leadId String?
+
+  @@index([url])
+  @@index([scoreTechnique])
+  @@map("audit_techniques")
+}
+
+model SiteAScanner {
+  id        String   @id @default(uuid())
+  createdAt DateTime @default(now())
+
+  url            String   @unique
+  entrepriseNom  String?
+  siret          String?
+  segment        String?
+  source         String?
+  priority       Int      @default(5)
+  lastScannedAt  DateTime?
+  scanCount      Int      @default(0)
+  active         Boolean  @default(true)
+
+  @@index([active, priority])
+  @@index([lastScannedAt])
+  @@map("sites_a_scanner")
+}
+
 model AgentEvent {
   id        String   @id @default(uuid())
   createdAt DateTime @default(now())
@@ -719,4 +1168,330 @@ model AgentEvent {
   @@index([agentName, eventType])
   @@index([createdAt])
   @@map("agent_events")
+}
+
+model AbTest {
+  id        String   @id @default(uuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  name        String
+  description String?
+  status      String  @default("running")
+
+  variantA     String
+  variantB     String
+  trafficSplit Float  @default(0.5)
+
+  metricName    String
+  metricValueA  Float?
+  metricValueB  Float?
+
+  sampleSizeA   Int @default(0)
+  sampleSizeB   Int @default(0)
+
+  winner          String?
+  confidenceLevel Float?
+  concludedAt     DateTime?
+
+  @@index([status])
+  @@map("ab_tests")
+}
+
+model Touchpoint {
+  id        String   @id @default(uuid())
+  createdAt DateTime @default(now())
+
+  prospectId String
+  prospect   Prospect @relation(fields: [prospectId], references: [id])
+
+  channel     ChannelType
+  direction   String
+  occurredAt  DateTime    @default(now())
+
+  subject      String?
+  body         String?
+  templateId   String?
+  stepNumber   Int?
+
+  status       String?
+  openedAt     DateTime?
+  clickedAt    DateTime?
+  repliedAt    DateTime?
+
+  agentName    String?
+  jobId        String?
+  metadata     Json?
+
+  @@index([prospectId])
+  @@index([occurredAt])
+  @@map("touchpoints")
+}
+
+model User {
+  id           String   @id @default(uuid())
+  email        String   @unique
+  passwordHash String   @map("password_hash")
+  firstName    String?  @map("first_name")
+  lastName     String?  @map("last_name")
+  roles        String[] @default(["user"])
+  isActive     Boolean  @default(true) @map("is_active")
+  lastLoginAt  DateTime? @map("last_login_at")
+  failedLoginAttempts Int @default(0) @map("failed_login_attempts")
+  lockedUntil  DateTime? @map("locked_until")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  @@map("users")
+  @@index([email])
+}
+
+// ─── Agent 10: CSM ───────────────────────────────────────────────────────────
+
+model OnboardingStep {
+  id         String   @id @default(uuid())
+  customerId String
+  customer   Customer @relation(fields: [customerId], references: [id])
+  stepId     String
+  name       String
+  dayOffset  Int
+  owner      String
+  status     String   @default("pending")
+  dueDate    DateTime
+  completedAt DateTime?
+  notes      String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([customerId, status])
+  @@index([dueDate])
+  @@map("onboarding_steps")
+}
+
+model OnboardingRisk {
+  id                String   @id @default(uuid())
+  customerId        String
+  customer          Customer @relation(fields: [customerId], references: [id])
+  riskType          String
+  severity          String   @default("medium")
+  detectedAt        DateTime @default(now())
+  resolvedAt        DateTime?
+  daysSinceTrigger  Int
+  actionTaken       String?
+
+  @@index([customerId])
+  @@index([severity])
+  @@map("onboarding_risks")
+}
+
+model UpsellOpportunity {
+  id                 String   @id @default(uuid())
+  customerId         String
+  customer           Customer @relation(fields: [customerId], references: [id])
+  dealId             String?
+  productTarget      String
+  estimatedValue     Float
+  upsellScore        Float
+  priority           String
+  signalsDetected    Json
+  blockerReasons     Json?
+  recommendedTiming  String?
+  templateId         String?
+  status             String   @default("detected")
+  proposedAt         DateTime?
+  convertedAt        DateTime?
+  convertedDealId    String?
+  notes              String?
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  @@index([customerId, status])
+  @@index([priority])
+  @@map("upsell_opportunities")
+}
+
+model NpsSurvey {
+  id          String   @id @default(uuid())
+  customerId  String
+  customer    Customer @relation(fields: [customerId], references: [id])
+  type        String
+  trigger     String
+  score       Int?
+  comment     String?
+  sentiment   String?
+  channel     String   @default("email")
+  tool        String   @default("typeform")
+  formId      String?
+  responseId  String?
+  sentAt      DateTime?
+  respondedAt DateTime?
+  status      String   @default("pending")
+  createdAt   DateTime @default(now())
+
+  @@index([customerId])
+  @@index([type, status])
+  @@map("nps_surveys")
+}
+
+model ChurnSignal {
+  id               String   @id @default(uuid())
+  customerId       String
+  customer         Customer @relation(fields: [customerId], references: [id])
+  signalType       String
+  severity         String
+  description      String
+  detectedAt       DateTime @default(now())
+  acknowledgedAt   DateTime?
+  resolvedAt       DateTime?
+  actionTaken      String?
+  churnProbability Float?
+
+  @@index([customerId])
+  @@index([severity, resolvedAt])
+  @@map("churn_signals")
+}
+
+model ReviewRequest {
+  id               String   @id @default(uuid())
+  customerId       String
+  customer         Customer @relation(fields: [customerId], references: [id])
+  dealId           String?
+  npsScore         Int?
+  platformTargets  Json
+  sequenceStatus   String   @default("pending")
+  email1SentAt     DateTime?
+  email2SentAt     DateTime?
+  email3SentAt     DateTime?
+  reviewReceived   Boolean  @default(false)
+  reviewUrl        String?
+  reviewScore      Float?
+  reviewPlatform   String?
+  reviewText       String?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  @@index([customerId])
+  @@index([sequenceStatus])
+  @@map("review_requests")
+}
+
+model NegativeReview {
+  id            String   @id @default(uuid())
+  customerId    String?
+  platform      String
+  reviewUrl     String
+  reviewScore   Float
+  reviewText    String
+  detectedAt    DateTime @default(now())
+  respondedAt   DateTime?
+  responseText  String?
+  resolvedAt    DateTime?
+  escalatedTo   String?
+  status        String   @default("detected")
+
+  @@index([platform])
+  @@index([status])
+  @@map("negative_reviews")
+}
+
+model ReferralProgram {
+  id                       String   @id @default(uuid())
+  customerId               String   @unique
+  customer                 Customer @relation(fields: [customerId], references: [id])
+  dealId                   String?
+  status                   String   @default("invited")
+  referralCode             String   @unique
+  commissionTier           String
+  totalCommissionEarned    Float    @default(0)
+  totalReferralsSubmitted  Int      @default(0)
+  totalReferralsConverted  Int      @default(0)
+  joinedAt                 DateTime?
+  lastReferralAt           DateTime?
+  referralLeads            ReferralLead[]
+  createdAt                DateTime @default(now())
+  updatedAt                DateTime @updatedAt
+
+  @@index([status])
+  @@index([referralCode])
+  @@map("referral_programs")
+}
+
+model ReferralLead {
+  id                String          @id @default(uuid())
+  referralProgramId String
+  referralProgram   ReferralProgram @relation(fields: [referralProgramId], references: [id])
+  referralCode      String
+  prenom            String
+  nom               String
+  email             String
+  entreprise        String
+  besoin            String
+  telephone         String?
+  status            String          @default("submitted")
+  submittedAt       DateTime        @default(now())
+  contactedAt       DateTime?
+  qualifiedAt       DateTime?
+  convertedAt       DateTime?
+  lostReason        String?
+  dealValue         Float?
+  commissionRate    Float?
+  commissionAmount  Float?
+  commissionPaid    Boolean         @default(false)
+  commissionPaidAt  DateTime?
+  prospectId        String?
+  dealId            String?
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
+
+  @@index([referralProgramId])
+  @@index([status])
+  @@index([referralCode])
+  @@map("referral_leads")
+}
+
+model ProjectMilestone {
+  id             String   @id @default(uuid())
+  customerId     String
+  customer       Customer @relation(fields: [customerId], references: [id])
+  dealId         String?
+  phase          String
+  name           String
+  dueDate        DateTime
+  completedAt    DateTime?
+  deliverableUrl String?
+  status         String   @default("pending")
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@index([customerId, status])
+  @@map("project_milestones")
+}
+
+model CsmMetricsDaily {
+  id             String   @id @default(uuid())
+  date           DateTime @unique
+  snapshot       Json
+  totalClients   Int
+  avgHealthScore Float
+  churnRate      Float
+  nrr            Float
+  createdAt      DateTime @default(now())
+
+  @@index([date])
+  @@map("csm_metrics_daily")
+}
+
+model RenewalOpportunity {
+  id          String   @id @default(uuid())
+  customerId  String
+  customer    Customer @relation(fields: [customerId], references: [id])
+  status      String   @default("pending")
+  renewalDate DateTime?
+  mrrEur      Float?
+  notes       String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([customerId])
+  @@map("renewal_opportunities")
 }

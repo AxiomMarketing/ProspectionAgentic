@@ -673,8 +673,7 @@ OUTREACH
 ├─ Vidyard Plus              59$/mois → AI Video Avatars
 
 AUTOMATION & AGENTS
-├─ n8n Cloud                 50 EUR/mois → Custom AI agents
-├─ Make Professional         50 EUR/mois
+├─ n8n self-hosted           0 EUR/mois → Custom AI agents + workflows RSS
 
 TOTAL : ~1 200-1 500 EUR/mois
 ```

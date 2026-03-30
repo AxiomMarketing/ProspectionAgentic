@@ -181,7 +181,7 @@
 
 **Alternatives concrètes :**
 - **n8n self-hosted** : 1000+ intégrations, JS/Python custom, contrôle total des données, gratuit
-- **Make.com** : Zéro code, drag-and-drop, mais données sur leur cloud
+- **n8n self-hosted** : Zéro code, drag-and-drop, contrôle total des données
 - **Instantly.ai + Apollo.io + Pipedrive** : Stack complète de prospection pour ~500 EUR/mois, opérationnelle en 1 semaine
 
 **Mise à jour de croyance :**

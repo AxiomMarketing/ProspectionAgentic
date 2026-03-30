@@ -4,6 +4,8 @@ import { IQuoteRepository } from '../../domain/repositories/i-quote.repository';
 import { Quote, QuoteLineItem } from '../../domain/entities/quote.entity';
 import { Quote as PrismaQuote } from '@prisma/client';
 
+const ACTIVE_QUOTE_STATUSES = ['draft', 'sent', 'accepted'];
+
 @Injectable()
 export class PrismaQuoteRepository extends IQuoteRepository {
   constructor(private readonly prisma: PrismaService) {
@@ -20,7 +22,7 @@ export class PrismaQuoteRepository extends IQuoteRepository {
       amountHtEur: Number(record.amountHtEur),
       tvaRate: Number(record.tvaRate),
       lineItems: record.lineItems as unknown as QuoteLineItem[],
-      status: record.status as any,
+      status: record.status as Quote['status'],
       createdAt: record.createdAt,
     });
   }
@@ -35,6 +37,27 @@ export class PrismaQuoteRepository extends IQuoteRepository {
     return records.map((r) => this.toDomain(r));
   }
 
+  async findActiveByDealId(dealId: string): Promise<Quote[]> {
+    const records = await this.prisma.quote.findMany({
+      where: {
+        dealId,
+        status: { in: ACTIVE_QUOTE_STATUSES },
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+    return records.map((r) => this.toDomain(r));
+  }
+
+  async expirePreviousQuotes(dealId: string): Promise<void> {
+    await this.prisma.quote.updateMany({
+      where: {
+        dealId,
+        status: { in: ACTIVE_QUOTE_STATUSES },
+      },
+      data: { status: 'expired' },
+    });
+  }
+
   async save(quote: Quote): Promise<Quote> {
     const plain = quote.toPlainObject();
     const record = await this.prisma.quote.create({
@@ -46,7 +69,7 @@ export class PrismaQuoteRepository extends IQuoteRepository {
         title: plain.title,
         amountHtEur: plain.amountHtEur,
         tvaRate: plain.tvaRate,
-        lineItems: plain.lineItems as any,
+        lineItems: plain.lineItems as object[],
         status: plain.status,
       },
     });

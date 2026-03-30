@@ -27,7 +27,7 @@
 | **Donnees profils/entreprises** | Netrows API | 99 EUR/mois (40K credits) | Remplacant legal de Proxycurl, 48+ endpoints, donnees publiques |
 | **Job postings + hiring velocity** | SignalsAPI | 99 USD/mois (starter) | Detection postes ouverts, croissance equipe |
 | **Levees de fonds** | Crunchbase API (free tier) + RSS Maddyness | 0 EUR/mois | Funding announcements |
-| **Posts monitoring** | RSS feeds LinkedIn pages + Make.com | 29 EUR/mois (Make Pro) | Conversion RSS vers webhooks |
+| **Posts monitoring** | RSS feeds LinkedIn pages + n8n | 0 EUR/mois (self-hosted) | Conversion RSS vers webhooks |
 | **Email extraction** | Hunter.io | 49 EUR/mois (1500 lookups) | Partagee avec les autres sous-agents |
 | **Infrastructure** | Redis + PostgreSQL (self-hosted) | 0 EUR (inclus infra) | Queue + cache + stockage |
 
@@ -115,7 +115,7 @@ ETAPE 1 : INGESTION DES SIGNAUX (parallele)
 │
 └── 1.5 Posts avec mots-cles
     ├── RSS feeds pages entreprises cibles
-    ├── Make.com : conversion RSS --> webhook --> n8n
+    ├── n8n : conversion RSS --> webhook --> traitement
     ├── Filtrage NLP : correspondance mots-cles
     └── Output : liste de {author, company, post_text, keywords_matched}
 
@@ -358,7 +358,7 @@ export class LinkedInScanner {
   }
 
   private async scanPosts(): Promise<RawLead[]> {
-    // Via Make.com/n8n : RSS feeds des pages entreprises --> webhook --> traitement
+    // Via n8n : RSS feeds des pages entreprises --> webhook --> traitement
     const leads: RawLead[] = []
 
     // Recuperer les posts non-traites depuis la queue
@@ -472,7 +472,7 @@ export class LinkedInScanner {
 |-----|----------|----------------|-----------------|-----------|
 | Netrows | 99 EUR | 40,000 credits | 25,000-30,000 | ~0.004 EUR |
 | SignalsAPI | 99 USD | Starter plan | Variable | ~0.01 USD |
-| Make.com | 29 EUR | 10,000 ops | ~5,000 ops | ~0.006 EUR |
+| n8n (self-hosted) | 0 EUR | Illimité | ~5,000 ops | 0 EUR |
 | Hunter.io | 49 EUR | 1,500 lookups | Partage 4 agents | ~0.03 EUR |
 | **Total 1a** | **~276 EUR** | | | |
 

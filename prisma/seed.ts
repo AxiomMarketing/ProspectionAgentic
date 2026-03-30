@@ -1,8 +1,8 @@
 import { PrismaClient } from '@prisma/client';
+
 const prisma = new PrismaClient();
 
 async function main() {
-  // Create default scoring coefficients
   await prisma.scoringCoefficient.upsert({
     where: { name_version: { name: 'default', version: '1.0' } },
     update: {},
@@ -11,15 +11,30 @@ async function main() {
       version: '1.0',
       isActive: true,
       coefficients: {
-        firmographic: 0.35,
-        technographic: 0.2,
-        behavioral: 0.15,
-        engagement: 0.15,
-        intent: 0.15,
+        icp: {
+          label: 'Axe ICP',
+          description: 'Ideal Customer Profile match',
+          weight: 35,
+        },
+        signaux: {
+          label: 'Axe Signaux',
+          description: 'Business signals',
+          weight: 30,
+        },
+        tech: {
+          label: 'Axe Tech',
+          description: 'Technology readiness',
+          weight: 20,
+        },
+        engagement: {
+          label: 'Axe Engagement',
+          description: 'Engagement level',
+          weight: 15,
+        },
       },
     },
   });
-  console.log('Seed data created');
+  console.log('Seed complete: default ScoringCoefficient upserted');
 }
 
 main()

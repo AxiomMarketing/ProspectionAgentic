@@ -1,4 +1,5 @@
-export type CustomerStatus = 'active' | 'churned' | 'suspended';
+// status allowed values: 'active' | 'churned' | 'suspended' | 'onboarding'
+export type CustomerStatus = 'active' | 'churned' | 'suspended' | 'onboarding';
 
 export interface CustomerProps {
   id: string;
@@ -13,6 +14,13 @@ export interface CustomerProps {
   churnReason?: string;
   createdAt: Date;
   updatedAt: Date;
+  typeProjet?: string;           // 'site_vitrine' | 'ecommerce_shopify' | 'app_flutter' | 'app_metier' | 'rgaa' | 'tracking_server_side'
+  tier?: string;                 // 'bronze' | 'silver' | 'gold'
+  scopeDetaille?: string[];      // contractual scope items
+  conditionsPaiement?: string;   // '50/50' | '30/40/30' | 'mensuel'
+  notesVente?: string;           // sales notes from DealToCSM
+  dealCycleDays?: number;        // sales cycle length in days
+  engagementScoreFinal?: number; // engagement score at closing time
 }
 
 export class Customer {
@@ -21,7 +29,19 @@ export class Customer {
   static create(
     params: Pick<
       CustomerProps,
-      'companyName' | 'siren' | 'primaryContactId' | 'contractStartDate' | 'mrrEur' | 'plan'
+      | 'companyName'
+      | 'siren'
+      | 'primaryContactId'
+      | 'contractStartDate'
+      | 'mrrEur'
+      | 'plan'
+      | 'typeProjet'
+      | 'tier'
+      | 'scopeDetaille'
+      | 'conditionsPaiement'
+      | 'notesVente'
+      | 'dealCycleDays'
+      | 'engagementScoreFinal'
     >,
   ): Customer {
     const now = new Date();
@@ -73,6 +93,27 @@ export class Customer {
   }
   get updatedAt(): Date {
     return this.props.updatedAt;
+  }
+  get typeProjet(): string | undefined {
+    return this.props.typeProjet;
+  }
+  get tier(): string | undefined {
+    return this.props.tier;
+  }
+  get scopeDetaille(): string[] | undefined {
+    return this.props.scopeDetaille;
+  }
+  get conditionsPaiement(): string | undefined {
+    return this.props.conditionsPaiement;
+  }
+  get notesVente(): string | undefined {
+    return this.props.notesVente;
+  }
+  get dealCycleDays(): number | undefined {
+    return this.props.dealCycleDays;
+  }
+  get engagementScoreFinal(): number | undefined {
+    return this.props.engagementScoreFinal;
   }
 
   churn(reason: string): Customer {

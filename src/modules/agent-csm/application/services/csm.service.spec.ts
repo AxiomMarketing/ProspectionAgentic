@@ -1,40 +1,68 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { NotFoundException } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { CsmService } from './csm.service';
 import { ICustomerRepository } from '../../domain/repositories/i-customer.repository';
-import { IHealthScoreRepository } from '../../domain/repositories/i-health-score.repository';
 import { PrismaService } from '@core/database/prisma.service';
+import { AgentEventLoggerService } from '@shared/services/agent-event-logger.service';
+import { OnboardingService } from './onboarding.service';
+import { SatisfactionService } from './satisfaction.service';
+import { UpsellService } from './upsell.service';
+import { ReviewService } from './review.service';
+import { ReferralService } from './referral.service';
 import { Customer } from '../../domain/entities/customer.entity';
-import { HealthScore } from '../../domain/entities/health-score.entity';
+import { DealToCSMDto } from '../dtos/deal-to-csm.dto';
 
-const mockCustomer = Customer.reconstitute({
-  id: 'cust-1',
-  companyName: 'Acme Corp',
-  siren: '123456789',
-  primaryContactId: undefined,
-  contractStartDate: new Date('2025-01-01'),
-  mrrEur: 1000,
-  plan: 'gold',
-  status: 'active',
-  createdAt: new Date(),
-  updatedAt: new Date(),
+// ─── Factories ───────────────────────────────────────────────────────────────
+
+const makeCustomer = (overrides: Partial<ReturnType<Customer['toPlainObject']>> = {}) =>
+  Customer.reconstitute({
+    id: 'cust-1',
+    companyName: 'Acme Corp',
+    siren: '123456789',
+    primaryContactId: 'prospect-1',
+    contractStartDate: new Date('2025-01-01'),
+    mrrEur: 1000,
+    plan: 'gold',
+    status: 'active',
+    createdAt: new Date(),
+    updatedAt: new Date(),
+    ...overrides,
+  });
+
+const makeDealToCSMDto = (overrides: Partial<DealToCSMDto> = {}): DealToCSMDto => ({
+  deal_id: 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
+  prospect_id: 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb',
+  prospect: {
+    prenom: 'Jean',
+    nom: 'Dupont',
+    email: 'jean@acme.fr',
+    poste: 'CEO',
+  },
+  entreprise: {
+    nom: 'Acme Corp',
+    siret: '123456789',
+  },
+  contrat: {
+    montant_ht: 5000,
+    tier: 'gold',
+    type_projet: 'site_vitrine',
+    date_signature: '2025-03-01T00:00:00.000Z',
+    date_demarrage_prevue: '2025-03-15T00:00:00.000Z',
+    duree_estimee_semaines: 8,
+    conditions_paiement: '50/50',
+    scope_detaille: ['design', 'dev', 'seo'],
+  },
+  notes_vente: 'Client prioritaire',
+  metadata: {
+    agent: 'agent_8_dealmaker',
+    created_at: '2025-03-01T00:00:00.000Z',
+    deal_cycle_days: 30,
+    engagement_score_final: 85,
+  },
+  ...overrides,
 });
 
-const mockHealthScore = HealthScore.reconstitute({
-  id: 'hs-1',
-  customerId: 'cust-1',
-  healthScore: 75,
-  healthLabel: 'yellow',
-  usageScore: 70,
-  supportScore: 70,
-  financialScore: 100,
-  engagementScore: 70,
-  npsScore: undefined,
-  signals: {},
-  isLatest: true,
-  calculatedAt: new Date(),
-});
+// ─── Mocks ───────────────────────────────────────────────────────────────────
 
 const mockCustomerRepo = {
   findById: jest.fn(),
@@ -45,24 +73,52 @@ const mockCustomerRepo = {
   update: jest.fn(),
 };
 
-const mockHealthScoreRepo = {
-  findLatestByCustomerId: jest.fn(),
-  save: jest.fn(),
+const mockEventEmitter = { emit: jest.fn() };
+const mockAgentEventLogger = { log: jest.fn().mockResolvedValue(undefined) };
+
+const mockOnboardingService = {
+  startOnboarding: jest.fn().mockResolvedValue(undefined),
+  checkAtRiskOnboardings: jest.fn().mockResolvedValue(undefined),
+};
+
+const mockSatisfactionService = {
+  calculateHealthScore: jest.fn(),
+  detectChurnSignals: jest.fn(),
+  checkAllCustomersHealth: jest.fn().mockResolvedValue(undefined),
+};
+
+const mockUpsellService = {
+  evaluateUpsellOpportunity: jest.fn(),
+};
+
+const mockReviewService = {
+  requestReviews: jest.fn().mockResolvedValue(undefined),
+  respondToNegativeReview: jest.fn().mockResolvedValue(undefined),
+};
+
+const mockReferralService = {
+  inviteToProgram: jest.fn().mockResolvedValue(undefined),
+  submitReferral: jest.fn(),
 };
 
 const mockPrisma = {
-  agentEvent: { count: jest.fn() },
-  customer: { findMany: jest.fn() },
-  prospect: { findUnique: jest.fn(), update: jest.fn() },
-  rgpdBlacklist: { findFirst: jest.fn() },
-  prospectScore: { count: jest.fn() },
-  emailSend: { count: jest.fn() },
-  dealCrm: { count: jest.fn() },
-  nurtureProspect: { findMany: jest.fn(), updateMany: jest.fn(), deleteMany: jest.fn() },
-  metriquesDaily: { findMany: jest.fn(), createMany: jest.fn() },
+  customer: {
+    findMany: jest.fn(),
+    findUnique: jest.fn(),
+    update: jest.fn(),
+  },
+  customerHealthScore: { findMany: jest.fn() },
+  onboardingStep: { findMany: jest.fn() },
+  npsSurvey: { findMany: jest.fn() },
+  upsellOpportunity: { findMany: jest.fn() },
+  reviewRequest: { findMany: jest.fn() },
+  referralProgram: { findMany: jest.fn() },
+  referralLead: { findMany: jest.fn() },
+  negativeReview: { findMany: jest.fn() },
+  csmMetricsDaily: { findFirst: jest.fn() },
 };
 
-const mockEventEmitter = { emit: jest.fn() };
+// ─── Tests ───────────────────────────────────────────────────────────────────
 
 describe('CsmService', () => {
   let service: CsmService;
@@ -74,8 +130,13 @@ describe('CsmService', () => {
       providers: [
         CsmService,
         { provide: ICustomerRepository, useValue: mockCustomerRepo },
-        { provide: IHealthScoreRepository, useValue: mockHealthScoreRepo },
         { provide: EventEmitter2, useValue: mockEventEmitter },
+        { provide: AgentEventLoggerService, useValue: mockAgentEventLogger },
+        { provide: OnboardingService, useValue: mockOnboardingService },
+        { provide: SatisfactionService, useValue: mockSatisfactionService },
+        { provide: UpsellService, useValue: mockUpsellService },
+        { provide: ReviewService, useValue: mockReviewService },
+        { provide: ReferralService, useValue: mockReferralService },
         { provide: PrismaService, useValue: mockPrisma },
       ],
     }).compile();
@@ -83,97 +144,171 @@ describe('CsmService', () => {
     service = module.get<CsmService>(CsmService);
   });
 
-  // ---- onboardCustomer ----
+  // ─── onboardCustomer ───────────────────────────────────────────────────────
 
-  it('should create customer with status active', async () => {
-    mockCustomerRepo.save.mockImplementation(async (c: Customer) => c);
+  describe('onboardCustomer', () => {
+    it('should create customer with status onboarding and all enriched fields', async () => {
+      const saved = makeCustomer({ status: 'onboarding' });
+      mockCustomerRepo.save.mockResolvedValue(saved);
 
-    const dto = { companyName: 'Acme Corp', mrrEur: 500 };
-    const result = await service.onboardCustomer(dto);
+      const dto = makeDealToCSMDto();
+      const result = await service.onboardCustomer(dto);
 
-    expect(result.status).toBe('active');
-    expect(result.companyName).toBe('Acme Corp');
-    expect(mockCustomerRepo.save).toHaveBeenCalledTimes(1);
-  });
-
-  it('should emit customer.onboarded event after onboarding', async () => {
-    mockCustomerRepo.save.mockImplementation(async (c: Customer) => c);
-
-    await service.onboardCustomer({ companyName: 'Beta Inc', mrrEur: 200 });
-
-    expect(mockEventEmitter.emit).toHaveBeenCalledWith(
-      'customer.onboarded',
-      expect.objectContaining({ customerId: expect.any(String) }),
-    );
-  });
-
-  // ---- calculateHealthScore ----
-
-  it('should throw NotFoundException when customer does not exist', async () => {
-    mockCustomerRepo.findById.mockResolvedValue(null);
-
-    await expect(service.calculateHealthScore('ghost-id')).rejects.toThrow(NotFoundException);
-  });
-
-  it('should calculate health score using 40/30/30 weights', async () => {
-    // engagement = min(100, agentEvents * 10), mocked to 3 events → 30
-    // satisfaction = 70 (hardcoded)
-    // growth = min(100, mrrEur/10) = min(100, 1000/10) = 100
-    // healthScore = round(30*0.4 + 70*0.3 + 100*0.3) = round(12 + 21 + 30) = 63
-    mockCustomerRepo.findById.mockResolvedValue(mockCustomer);
-    mockPrisma.agentEvent.count.mockResolvedValue(3);
-    mockHealthScoreRepo.findLatestByCustomerId.mockResolvedValue(null);
-    mockHealthScoreRepo.save.mockImplementation(async (hs: HealthScore) => hs);
-
-    const result = await service.calculateHealthScore('cust-1');
-
-    expect(result.healthScore).toBe(63);
-  });
-
-  it('should label health score 80+ as green', async () => {
-    // engagement = 10 events → 100, satisfaction = 70, growth = min(100, 5000/10)=100
-    // healthScore = round(100*0.4 + 70*0.3 + 100*0.3) = round(40+21+30) = 91
-    const richCustomer = Customer.reconstitute({
-      ...mockCustomer.toPlainObject(),
-      mrrEur: 5000,
+      expect(result.status).toBe('onboarding');
+      expect(mockCustomerRepo.save).toHaveBeenCalledTimes(1);
+      const savedArg: Customer = mockCustomerRepo.save.mock.calls[0][0];
+      expect(savedArg.companyName).toBe('Acme Corp');
+      expect(savedArg.typeProjet).toBe('site_vitrine');
+      expect(savedArg.tier).toBe('gold');
+      expect(savedArg.dealCycleDays).toBe(30);
+      expect(savedArg.engagementScoreFinal).toBe(85);
+      expect(savedArg.conditionsPaiement).toBe('50/50');
     });
-    mockCustomerRepo.findById.mockResolvedValue(richCustomer);
-    mockPrisma.agentEvent.count.mockResolvedValue(10);
-    mockHealthScoreRepo.findLatestByCustomerId.mockResolvedValue(null);
-    mockHealthScoreRepo.save.mockImplementation(async (hs: HealthScore) => hs);
 
-    const result = await service.calculateHealthScore('cust-1');
+    it('should emit customer.onboarded event with customerId and dealId', async () => {
+      const saved = makeCustomer({ status: 'onboarding' });
+      mockCustomerRepo.save.mockResolvedValue(saved);
 
-    expect(result.healthScore).toBeGreaterThanOrEqual(80);
-    expect(result.healthLabel).toBe('green');
+      const dto = makeDealToCSMDto();
+      await service.onboardCustomer(dto);
+
+      expect(mockEventEmitter.emit).toHaveBeenCalledWith(
+        'customer.onboarded',
+        expect.objectContaining({
+          customerId: saved.id,
+          dealId: dto.deal_id,
+        }),
+      );
+    });
+
+    it('should call onboardingService.startOnboarding after saving', async () => {
+      const saved = makeCustomer({ status: 'onboarding' });
+      mockCustomerRepo.save.mockResolvedValue(saved);
+
+      const dto = makeDealToCSMDto();
+      await service.onboardCustomer(dto);
+
+      expect(mockOnboardingService.startOnboarding).toHaveBeenCalledWith(saved.id, dto);
+    });
+
+    it('should log customer_onboarded event', async () => {
+      const saved = makeCustomer({ status: 'onboarding' });
+      mockCustomerRepo.save.mockResolvedValue(saved);
+
+      await service.onboardCustomer(makeDealToCSMDto());
+
+      expect(mockAgentEventLogger.log).toHaveBeenCalledWith(
+        expect.objectContaining({
+          agentName: 'csm',
+          eventType: 'customer_onboarded',
+        }),
+      );
+    });
   });
 
-  it('should label health score 60-79 as yellow', async () => {
-    // engagement=3 events → 30, satisfaction=70, growth=min(100,1000/10)=100
-    // healthScore = round(30*0.4 + 70*0.3 + 100*0.3) = 63 → yellow
-    mockCustomerRepo.findById.mockResolvedValue(mockCustomer);
-    mockPrisma.agentEvent.count.mockResolvedValue(3);
-    mockHealthScoreRepo.findLatestByCustomerId.mockResolvedValue(null);
-    mockHealthScoreRepo.save.mockImplementation(async (hs: HealthScore) => hs);
+  // ─── calculateHealthScore ──────────────────────────────────────────────────
 
-    const result = await service.calculateHealthScore('cust-1');
+  describe('calculateHealthScore', () => {
+    it('should delegate to satisfactionService.calculateHealthScore', async () => {
+      const mockResult = { healthScore: 75, healthLabel: 'yellow' };
+      mockSatisfactionService.calculateHealthScore.mockResolvedValue(mockResult);
 
-    expect(result.healthScore).toBeGreaterThanOrEqual(60);
-    expect(result.healthScore).toBeLessThan(80);
-    expect(result.healthLabel).toBe('yellow');
+      const result = await service.calculateHealthScore('cust-1');
+
+      expect(mockSatisfactionService.calculateHealthScore).toHaveBeenCalledWith('cust-1');
+      expect(result).toBe(mockResult);
+    });
+
+    it('should propagate errors from satisfactionService', async () => {
+      mockSatisfactionService.calculateHealthScore.mockRejectedValue(
+        new Error('Customer not found'),
+      );
+
+      await expect(service.calculateHealthScore('ghost-id')).rejects.toThrow('Customer not found');
+    });
   });
 
-  it('should supercede existing health score before saving new one', async () => {
-    mockCustomerRepo.findById.mockResolvedValue(mockCustomer);
-    mockPrisma.agentEvent.count.mockResolvedValue(3);
-    mockHealthScoreRepo.findLatestByCustomerId.mockResolvedValue(mockHealthScore);
-    mockHealthScoreRepo.save.mockImplementation(async (hs: HealthScore) => hs);
+  // ─── predictChurn ──────────────────────────────────────────────────────────
 
-    await service.calculateHealthScore('cust-1');
+  describe('predictChurn', () => {
+    it('should return at-risk customers from Prisma', async () => {
+      const atRiskCustomers = [
+        { id: 'cust-1', companyName: 'Acme', healthScores: [], churnSignals: [{ id: 'sig-1' }] },
+      ];
+      mockPrisma.customer.findMany.mockResolvedValue(atRiskCustomers);
 
-    // save should be called twice: once for superceded, once for new
-    expect(mockHealthScoreRepo.save).toHaveBeenCalledTimes(2);
-    const firstCall = mockHealthScoreRepo.save.mock.calls[0][0] as HealthScore;
-    expect(firstCall.isLatest).toBe(false);
+      const result = await service.predictChurn();
+
+      expect(mockPrisma.customer.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({ where: { status: 'active' } }),
+      );
+      expect(result).toHaveLength(1);
+    });
+
+    it('should filter out customers with healthy scores and no churn signals', async () => {
+      mockPrisma.customer.findMany.mockResolvedValue([
+        { id: 'cust-1', companyName: 'Healthy Co', healthScores: [{ healthScore: 85 }], churnSignals: [] },
+        { id: 'cust-2', companyName: 'At Risk', healthScores: [{ healthScore: 30 }], churnSignals: [] },
+      ]);
+
+      const result = await service.predictChurn();
+
+      expect(result).toHaveLength(1);
+      expect((result[0] as any).companyName).toBe('At Risk');
+    });
+  });
+
+  // ─── evaluateUpsell ────────────────────────────────────────────────────────
+
+  describe('evaluateUpsell', () => {
+    it('should delegate to upsellService.evaluateUpsellOpportunity', async () => {
+      const mockOpp = { id: 'opp-1' };
+      mockUpsellService.evaluateUpsellOpportunity.mockResolvedValue(mockOpp);
+
+      const result = await service.evaluateUpsell('cust-1');
+
+      expect(mockUpsellService.evaluateUpsellOpportunity).toHaveBeenCalledWith('cust-1');
+      expect(result).toBe(mockOpp);
+    });
+  });
+
+  // ─── requestReviews ────────────────────────────────────────────────────────
+
+  describe('requestReviews', () => {
+    it('should delegate to reviewService.requestReviews', async () => {
+      await service.requestReviews('cust-1', 9);
+
+      expect(mockReviewService.requestReviews).toHaveBeenCalledWith('cust-1', 9);
+    });
+  });
+
+  // ─── inviteToReferral ──────────────────────────────────────────────────────
+
+  describe('inviteToReferral', () => {
+    it('should delegate to referralService.inviteToProgram', async () => {
+      await service.inviteToReferral('cust-1');
+
+      expect(mockReferralService.inviteToProgram).toHaveBeenCalledWith('cust-1');
+    });
+  });
+
+  // ─── dailyHealthSnapshot ───────────────────────────────────────────────────
+
+  describe('dailyHealthSnapshot', () => {
+    it('should delegate to satisfactionService.checkAllCustomersHealth', async () => {
+      await service.dailyHealthSnapshot();
+
+      expect(mockSatisfactionService.checkAllCustomersHealth).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  // ─── checkOnboardingRisks ──────────────────────────────────────────────────
+
+  describe('checkOnboardingRisks', () => {
+    it('should delegate to onboardingService.checkAtRiskOnboardings', async () => {
+      await service.checkOnboardingRisks();
+
+      expect(mockOnboardingService.checkAtRiskOnboardings).toHaveBeenCalledTimes(1);
+    });
   });
 });

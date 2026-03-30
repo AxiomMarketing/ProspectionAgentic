@@ -41,6 +41,21 @@ services:
     volumes:
       - prospection_redis_dev:/data
 
+  reacher:
+    image: reacherhq/backend:v0.7.0
+    container_name: prospection-reacher-dev
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    environment:
+      - RCH__WORKER__THROTTLE__MAX_REQUESTS_PER_SECOND=5
+      - RCH__WORKER__THROTTLE__MAX_REQUESTS_PER_DAY=500
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
 volumes:
   prospection_postgres_dev:
   prospection_redis_dev:

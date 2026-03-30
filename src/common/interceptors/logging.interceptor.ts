@@ -19,28 +19,8 @@ export class LoggingInterceptor implements NestInterceptor {
 
     const startTime = Date.now();
 
-    this.logger.log({
-      msg: 'Incoming request',
-      requestId,
-      method,
-      path: url,
-      userAgent: headers['user-agent'],
-      ip,
-    });
-
     return next.handle().pipe(
       tap({
-        next: () => {
-          const durationMs = Date.now() - startTime;
-          this.logger.log({
-            msg: 'Request completed',
-            requestId,
-            method,
-            path: url,
-            statusCode: response.statusCode,
-            durationMs,
-          });
-        },
         error: (error) => {
           const durationMs = Date.now() - startTime;
           this.logger.error({

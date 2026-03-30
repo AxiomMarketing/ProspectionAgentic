@@ -52,7 +52,7 @@ export class PrismaMessageSendRepository extends IMessageSendRepository {
         fromEmail: plain.fromEmail,
         toEmail: plain.toEmail,
         subject: plain.subject,
-        provider: 'unknown',
+        provider: 'gmail',
         status: plain.status as any,
       },
     });

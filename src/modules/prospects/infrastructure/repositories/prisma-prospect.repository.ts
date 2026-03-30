@@ -6,7 +6,7 @@ import {
   PaginatedProspects,
 } from '../../domain/repositories/i-prospect.repository';
 import { Prospect, ProspectProps } from '../../domain/entities/prospect.entity';
-import { Prospect as PrismaProspect } from '@prisma/client';
+import type { Prospect as PrismaProspect } from '@prisma/client';
 
 @Injectable()
 export class PrismaProspectRepository extends IProspectRepository {
@@ -42,8 +42,27 @@ export class PrismaProspectRepository extends IProspectRepository {
   }
 
   async findById(id: string): Promise<Prospect | null> {
-    const record = await this.prisma.prospect.findUnique({ where: { id } });
-    return record ? this.toDomain(record) : null;
+    const record = await this.prisma.prospect.findUnique({
+      where: { id },
+      include: { scores: { orderBy: { calculatedAt: 'desc' }, take: 1 } },
+    });
+    if (!record) return null;
+    const domain = this.toDomain(record);
+    const latestScore = (record as any).scores?.[0];
+    if (latestScore) {
+      (domain as any).latestScore = {
+        totalScore: latestScore.totalScore,
+        firmographicScore: latestScore.firmographicScore,
+        technographicScore: latestScore.technographicScore,
+        behavioralScore: latestScore.behavioralScore,
+        engagementScore: latestScore.engagementScore,
+        intentScore: latestScore.intentScore,
+        accessibilityScore: latestScore.accessibilityScore,
+        segment: latestScore.segment,
+        modelVersion: latestScore.modelVersion,
+      };
+    }
+    return domain;
   }
 
   async findByEmail(email: string): Promise<Prospect | null> {
@@ -62,18 +81,36 @@ export class PrismaProspectRepository extends IProspectRepository {
     const where: any = {};
     if (filter?.status?.length) where.status = { in: filter.status };
     if (filter?.createdAfter) where.createdAt = { gte: filter.createdAfter };
+    if (filter?.search) {
+      where.OR = [
+        { firstName: { contains: filter.search, mode: 'insensitive' } },
+        { lastName: { contains: filter.search, mode: 'insensitive' } },
+        { email: { contains: filter.search, mode: 'insensitive' } },
+        { companyName: { contains: filter.search, mode: 'insensitive' } },
+      ];
+    }
+
+    const sortField = filter?.sortBy ?? 'createdAt';
+    const sortOrder = filter?.sortOrder ?? 'desc';
+    const orderBy: any = { [sortField]: sortOrder };
 
     const [data, total] = await Promise.all([
       this.prisma.prospect.findMany({
         where,
         skip: (page - 1) * pageSize,
         take: pageSize,
-        orderBy: { createdAt: 'desc' },
+        orderBy,
       }),
       this.prisma.prospect.count({ where }),
     ]);
 
-    return { data: data.map((r) => this.toDomain(r)), total, page, pageSize };
+    return {
+      data: data.map((r) => this.toDomain(r)),
+      total,
+      page,
+      limit: pageSize,
+      totalPages: Math.ceil(total / pageSize),
+    };
   }
 
   async save(prospect: Prospect): Promise<Prospect> {

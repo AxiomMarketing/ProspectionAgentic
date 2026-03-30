@@ -154,9 +154,9 @@ maintenance_work_mem = 128MB    -- Pour VACUUM, CREATE INDEX
 Claude Sonnet → (si échec) → Claude Haiku → (si échec) → Template statique
 ```
 
-### 2.5 n8n vs Make.com vs Code Custom
+### 2.5 n8n vs Code Custom
 
-| Critère | n8n | Make.com | Code Custom |
+| Critère | n8n | Code Custom |
 |---------|-----|---------|-------------|
 | Self-hosted | Oui (Docker) | Non | Oui |
 | Contrôle données | Total | Données sur leur cloud | Total |

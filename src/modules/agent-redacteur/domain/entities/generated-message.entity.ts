@@ -5,6 +5,7 @@ export interface GeneratedMessageProps {
   channel: string;
   subject: string;
   body: string;
+  stepNumber: number;
   modelUsed: string;
   promptTokens: number;
   completionTokens: number;
@@ -18,10 +19,11 @@ export class GeneratedMessage {
   private constructor(private readonly props: GeneratedMessageProps) {}
 
   static create(
-    params: Omit<GeneratedMessageProps, 'id' | 'isApproved' | 'createdAt'>,
+    params: Omit<GeneratedMessageProps, 'id' | 'isApproved' | 'createdAt' | 'stepNumber'> & { stepNumber?: number },
   ): GeneratedMessage {
     return new GeneratedMessage({
       ...params,
+      stepNumber: params.stepNumber ?? 1,
       id: crypto.randomUUID(),
       isApproved: false,
       createdAt: new Date(),
@@ -49,6 +51,9 @@ export class GeneratedMessage {
   }
   get body(): string {
     return this.props.body;
+  }
+  get stepNumber(): number {
+    return this.props.stepNumber;
   }
   get modelUsed(): string {
     return this.props.modelUsed;

@@ -53,7 +53,7 @@ Tel que décrit dans les specs originales (toutes les APIs payantes).
 
 | Agent | Coût | Services utilisés |
 |-------|------|-------------------|
-| 1 - Veilleur | 430€ | Netrows, SignalsAPI, Make.com, Hunter.io, Apify, HasData |
+| 1 - Veilleur | 401€ | Netrows, SignalsAPI, n8n (self-hosted), Hunter.io, Apify, HasData |
 | 2 - Enrichisseur | 278€ | Dropcontact, Hunter.io, ZeroBounce, Kaspr, Pappers, Societe.com, Wappalyzer API |
 | 3 - Scoreur | 0€ | Calcul local |
 | 4 - Rédacteur | 12€ | Claude Sonnet |

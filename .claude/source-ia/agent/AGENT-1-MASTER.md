@@ -897,7 +897,7 @@ ORDER BY score_pertinence DESC, date_limite ASC;
 |-----------|---------|----------|
 | **1a LinkedIn** | Netrows API | 99 EUR |
 | | SignalsAPI | 99 USD (~93 EUR) |
-| | Make.com | 29 EUR |
+| | n8n (self-hosted) | 0 EUR |
 | | Hunter.io (partage) | 49 EUR / 4 = 12 EUR |
 | **Sous-total 1a** | | **~233 EUR** |
 | **1b Marches** | BOAMP + DECP + APProch + Scraping | 0 EUR |

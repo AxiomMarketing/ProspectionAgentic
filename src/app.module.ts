@@ -9,6 +9,7 @@ import { APP_GUARD } from '@nestjs/core';
 import { DatabaseModule } from '@core/database/database.module';
 import { LoggerModule } from '@core/logger/logger.module';
 import { HealthModule } from '@core/health/health.module';
+import { AgentSchedulerModule } from '@core/scheduler/scheduler.module';
 
 // Config factories
 import appConfig from '@core/config/app.config';
@@ -16,9 +17,11 @@ import databaseConfig from '@core/config/database.config';
 import redisConfig from '@core/config/redis.config';
 import llmConfig from '@core/config/llm.config';
 import jwtConfig from '@core/config/jwt.config';
+import enrichmentConfig from '@core/config/enrichment.config';
 
 // Common module
 import { CommonModule } from '@common/common.module';
+import { SharedModule } from '@shared/shared.module';
 
 // Guards
 import { JwtAuthGuard } from '@common/guards/jwt-auth.guard';
@@ -42,6 +45,9 @@ import { AgentCsmModule } from '@modules/agent-csm/agent-csm.module';
 // LLM module
 import { LlmModule } from '@modules/llm/llm.module';
 
+// Email module
+import { EmailModule } from '@modules/email/email.module';
+
 // Functional modules
 import { ProspectsModule } from '@modules/prospects/prospects.module';
 import { DashboardModule } from '@modules/dashboard/dashboard.module';
@@ -52,7 +58,7 @@ import { DashboardModule } from '@modules/dashboard/dashboard.module';
     ConfigModule.forRoot({
       isGlobal: true,
       cache: true,
-      load: [appConfig, databaseConfig, redisConfig, llmConfig, jwtConfig],
+      load: [appConfig, databaseConfig, redisConfig, llmConfig, jwtConfig, enrichmentConfig],
     }),
 
     // Logging (Pino)
@@ -101,6 +107,8 @@ import { DashboardModule } from '@modules/dashboard/dashboard.module';
     DatabaseModule,
     HealthModule,
     CommonModule,
+    SharedModule,
+    AgentSchedulerModule,
 
     // Auth
     AuthModule,
@@ -119,6 +127,9 @@ import { DashboardModule } from '@modules/dashboard/dashboard.module';
 
     // LLM
     LlmModule,
+
+    // Email
+    EmailModule,
 
     // Functional modules
     ProspectsModule,

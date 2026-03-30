@@ -1,7 +1,17 @@
 import { Test, TestingModule } from '@nestjs/testing';
+import { ConfigService } from '@nestjs/config';
 import { HealthController } from './health.controller';
 import { HealthCheckService } from '@nestjs/terminus';
 import { PrismaService } from '@core/database/prisma.service';
+
+jest.mock('ioredis', () => {
+  const MockRedis = jest.fn().mockImplementation(() => ({
+    ping: jest.fn().mockResolvedValue('PONG'),
+    disconnect: jest.fn(),
+  }));
+  (MockRedis as any).default = MockRedis;
+  return MockRedis;
+});
 
 describe('HealthController', () => {
   let controller: HealthController;
@@ -24,6 +34,10 @@ describe('HealthController', () => {
         {
           provide: PrismaService,
           useValue: { $queryRaw: jest.fn().mockResolvedValue([{ 1: 1 }]) },
+        },
+        {
+          provide: ConfigService,
+          useValue: { get: jest.fn().mockReturnValue('redis://localhost:6379') },
         },
       ],
     }).compile();

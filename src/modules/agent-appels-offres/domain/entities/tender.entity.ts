@@ -1,12 +1,26 @@
 export enum TenderStatus {
-  NEW = 'NEW',
+  DETECTED = 'DETECTED',
   ANALYZING = 'ANALYZING',
-  ANALYZED = 'ANALYZED',
+  QUALIFIED = 'QUALIFIED',
+  GO = 'GO',
+  IN_PROGRESS = 'IN_PROGRESS',
   SUBMITTED = 'SUBMITTED',
   WON = 'WON',
   LOST = 'LOST',
   IGNORED = 'IGNORED',
 }
+
+const VALID_TRANSITIONS: Record<TenderStatus, TenderStatus[]> = {
+  [TenderStatus.DETECTED]: [TenderStatus.ANALYZING, TenderStatus.IGNORED],
+  [TenderStatus.ANALYZING]: [TenderStatus.QUALIFIED, TenderStatus.IGNORED],
+  [TenderStatus.QUALIFIED]: [TenderStatus.GO, TenderStatus.IGNORED],
+  [TenderStatus.GO]: [TenderStatus.IN_PROGRESS, TenderStatus.IGNORED],
+  [TenderStatus.IN_PROGRESS]: [TenderStatus.SUBMITTED, TenderStatus.LOST],
+  [TenderStatus.SUBMITTED]: [TenderStatus.WON, TenderStatus.LOST],
+  [TenderStatus.WON]: [],
+  [TenderStatus.LOST]: [],
+  [TenderStatus.IGNORED]: [],
+};
 
 export interface TenderProps {
   id: string;
@@ -33,7 +47,7 @@ export class Tender {
     return new Tender({
       ...params,
       id: crypto.randomUUID(),
-      status: TenderStatus.NEW,
+      status: TenderStatus.DETECTED,
       dceAnalyzed: false,
       createdAt: new Date(),
     });
@@ -89,17 +103,31 @@ export class Tender {
     return this.props.createdAt;
   }
 
+  canTransitionTo(next: TenderStatus): boolean {
+    return VALID_TRANSITIONS[this.props.status].includes(next);
+  }
+
+  transitionTo(next: TenderStatus): Tender {
+    if (!this.canTransitionTo(next)) {
+      throw new Error(
+        `Invalid transition: ${this.props.status} → ${next}. Allowed: ${VALID_TRANSITIONS[this.props.status].join(', ') || 'none'}`,
+      );
+    }
+    return new Tender({ ...this.props, status: next });
+  }
+
   markAnalyzed(dceFitScore: number): Tender {
+    if (!this.canTransitionTo(TenderStatus.ANALYZING)) {
+      throw new Error(
+        `Invalid transition: ${this.props.status} → ${TenderStatus.ANALYZING}. Allowed: ${VALID_TRANSITIONS[this.props.status].join(', ') || 'none'}`,
+      );
+    }
     return new Tender({
       ...this.props,
-      status: TenderStatus.ANALYZED,
+      status: TenderStatus.ANALYZING,
       dceFitScore,
       dceAnalyzed: true,
     });
-  }
-
-  updateStatus(status: TenderStatus): Tender {
-    return new Tender({ ...this.props, status });
   }
 
   toPlainObject(): TenderProps {

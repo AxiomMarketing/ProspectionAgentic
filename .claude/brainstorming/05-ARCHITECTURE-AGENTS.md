@@ -100,7 +100,7 @@
 | **axe-core** | 1c, 2c | Gratuit | Audit accessibilité |
 | **Netrows** | 1a | 99€ | Signaux LinkedIn |
 | **SignalsAPI** | 1a | 99$ | Signaux LinkedIn (complément) |
-| **Make.com** | 1a | 29€ | Orchestration LinkedIn workflows |
+| **n8n** (self-hosted) | 1a | 0€ | Orchestration LinkedIn workflows (RSS → webhooks) |
 | **Hunter.io** | 1a, 2a | 49$ | Email finder + domain search |
 | **Dropcontact** | 2a | 39€ | Enrichissement email RGPD-compliant |
 | **ZeroBounce** | 2a | 16$ | Validation email |

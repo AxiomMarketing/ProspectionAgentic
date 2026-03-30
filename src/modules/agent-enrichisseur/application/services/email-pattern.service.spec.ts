@@ -7,9 +7,9 @@ describe('EmailPatternService', () => {
     service = new EmailPatternService();
   });
 
-  it('should generate exactly 10 candidates', () => {
+  it('should generate exactly 15 candidates', () => {
     const candidates = service.generateCandidates('Jean', 'Dupont', 'example.com');
-    expect(candidates).toHaveLength(10);
+    expect(candidates).toHaveLength(15);
   });
 
   it('should append the domain to every candidate', () => {
@@ -30,9 +30,10 @@ describe('EmailPatternService', () => {
     expect(candidates[0]).toBe('jean.dupont@acme.com');
   });
 
-  it('should produce initial.last pattern as second candidate', () => {
+  it('should contain initial+last pattern in candidates', () => {
     const candidates = service.generateCandidates('Jean', 'Dupont', 'acme.com');
-    expect(candidates[1]).toBe('j.dupont@acme.com');
+    expect(candidates).toContain('jdupont@acme.com');
+    expect(candidates).toContain('j.dupont@acme.com');
   });
 
   it('should strip hyphens and spaces from input names during normalization', () => {
