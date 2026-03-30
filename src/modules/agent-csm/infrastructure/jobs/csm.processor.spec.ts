@@ -42,7 +42,7 @@ const validOnboardPayload = (): Record<string, unknown> => ({
 
 describe('CsmProcessor', () => {
   let processor: CsmProcessor;
-  let csmService: jest.Mocked<Pick<CsmService, 'onboardCustomer' | 'calculateHealthScore' | 'dailyHealthSnapshot' | 'checkOnboardingRisks' | 'evaluateUpsell' | 'requestReviews' | 'inviteToReferral'>>;
+  let csmService: jest.Mocked<Pick<CsmService, 'onboardCustomer' | 'calculateHealthScore' | 'dailyHealthSnapshot' | 'checkOnboardingRisks' | 'evaluateUpsell' | 'requestReviews' | 'inviteToReferral' | 'detectChurnSignals'>>;
   let agentEventLogger: jest.Mocked<Pick<AgentEventLoggerService, 'log'>>;
   let deadLetterQueue: jest.Mocked<Pick<Queue, 'add'>>;
 
@@ -55,6 +55,7 @@ describe('CsmProcessor', () => {
       evaluateUpsell: jest.fn().mockResolvedValue(undefined),
       requestReviews: jest.fn().mockResolvedValue(undefined),
       inviteToReferral: jest.fn().mockResolvedValue(undefined),
+      detectChurnSignals: jest.fn().mockResolvedValue([]),
     };
     agentEventLogger = { log: jest.fn().mockResolvedValue(undefined) };
     deadLetterQueue = { add: jest.fn().mockResolvedValue(undefined) };
@@ -184,11 +185,46 @@ describe('CsmProcessor', () => {
     });
   });
 
-  // ─── Deferred actions ─────────────────────────────────────────────────────
+  // ─── Wired actions ────────────────────────────────────────────────────────
 
-  describe('deferred actions', () => {
-    it('should not call any service for check-onboarding-risks (deferred)', async () => {
+  describe('wired actions', () => {
+    it('should call csmService.checkOnboardingRisks for check-onboarding-risks', async () => {
       await processor.process(makeJob({ action: 'check-onboarding-risks' }));
+
+      expect(csmService.checkOnboardingRisks).toHaveBeenCalledTimes(1);
+    });
+
+    it('should call csmService.evaluateUpsell with customerId', async () => {
+      const customerId = 'cccccccc-cccc-cccc-cccc-cccccccccccc';
+      await processor.process(makeJob({ action: 'evaluate-upsell', customerId }));
+
+      expect(csmService.evaluateUpsell).toHaveBeenCalledWith(customerId);
+    });
+
+    it('should call csmService.requestReviews with customerId and npsScore', async () => {
+      const customerId = 'cccccccc-cccc-cccc-cccc-cccccccccccc';
+      await processor.process(makeJob({ action: 'request-review', customerId, npsScore: 8 }));
+
+      expect(csmService.requestReviews).toHaveBeenCalledWith(customerId, 8);
+    });
+
+    it('should call csmService.inviteToReferral with customerId', async () => {
+      const customerId = 'cccccccc-cccc-cccc-cccc-cccccccccccc';
+      await processor.process(makeJob({ action: 'invite-to-referral', customerId }));
+
+      expect(csmService.inviteToReferral).toHaveBeenCalledWith(customerId);
+    });
+
+    it('should call csmService.detectChurnSignals with customerId for check-churn-signals', async () => {
+      const customerId = 'cccccccc-cccc-cccc-cccc-cccccccccccc';
+      await processor.process(makeJob({ action: 'check-churn-signals', customerId }));
+
+      expect(csmService.detectChurnSignals).toHaveBeenCalledWith(customerId);
+    });
+
+    it('should not call any service for send-nps-survey (still deferred)', async () => {
+      const customerId = 'cccccccc-cccc-cccc-cccc-cccccccccccc';
+      await processor.process(makeJob({ action: 'send-nps-survey', customerId, surveyType: 'nps' }));
 
       expect(csmService.onboardCustomer).not.toHaveBeenCalled();
       expect(csmService.calculateHealthScore).not.toHaveBeenCalled();
