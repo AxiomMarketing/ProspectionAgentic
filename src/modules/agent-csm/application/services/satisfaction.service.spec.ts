@@ -78,7 +78,12 @@ const mockPrisma = {
   replyClassification: { findMany: jest.fn().mockResolvedValue([]) },
   customerHealthScore: {
     findMany: jest.fn().mockResolvedValue([]),
+    findFirst: jest.fn().mockResolvedValue(null),
+    updateMany: jest.fn().mockResolvedValue({ count: 0 }),
+    create: jest.fn().mockResolvedValue({}),
+    upsert: jest.fn().mockResolvedValue({}),
   },
+  $transaction: jest.fn().mockImplementation(async (cb: (tx: unknown) => Promise<unknown>) => cb(mockPrisma)),
   csmMetricsDaily: { upsert: jest.fn() },
   upsellOpportunity: { findFirst: jest.fn().mockResolvedValue(null) },
 } as any;
@@ -117,6 +122,9 @@ describe('SatisfactionService', () => {
     mockPrisma.churnSignal.create.mockResolvedValue({});
     mockPrisma.replyClassification.findMany.mockResolvedValue([]);
     mockPrisma.customer.findUnique.mockResolvedValue({ primaryContactId: 'contact-1' });
+    mockPrisma.customerHealthScore.updateMany.mockResolvedValue({ count: 0 });
+    mockPrisma.customerHealthScore.create.mockResolvedValue({});
+    mockPrisma.$transaction.mockImplementation(async (cb: (tx: unknown) => Promise<unknown>) => cb(mockPrisma));
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -215,17 +223,18 @@ describe('SatisfactionService', () => {
 
   it('should supercede existing latest score before saving new one', async () => {
     const customer = makeCustomer();
-    const existingScore = makeHealthScore();
     mockCustomerRepo.findById.mockResolvedValue(customer);
-    mockHealthScoreRepo.findLatestByCustomerId.mockResolvedValue(existingScore);
-    mockHealthScoreRepo.save.mockImplementation(async (hs: HealthScore) => hs);
     mockPrisma.upsellOpportunity = { findFirst: jest.fn().mockResolvedValue(null) } as any;
 
     await service.calculateHealthScore('cust-1');
 
-    expect(mockHealthScoreRepo.save).toHaveBeenCalledTimes(2);
-    const firstSave = mockHealthScoreRepo.save.mock.calls[0][0] as HealthScore;
-    expect(firstSave.isLatest).toBe(false);
+    expect(mockPrisma.$transaction).toHaveBeenCalledTimes(1);
+    expect(mockPrisma.customerHealthScore.updateMany).toHaveBeenCalledWith(
+      expect.objectContaining({ where: { customerId: 'cust-1', isLatest: true }, data: { isLatest: false } }),
+    );
+    expect(mockPrisma.customerHealthScore.create).toHaveBeenCalledWith(
+      expect.objectContaining({ data: expect.objectContaining({ customerId: 'cust-1', isLatest: true }) }),
+    );
   });
 
   it('should emit health.green_promoter for green score', async () => {
@@ -279,7 +288,7 @@ describe('SatisfactionService', () => {
     const oldDate = new Date(Date.now() - 70 * 24 * 60 * 60 * 1000);
     mockPrisma.agentEvent.findFirst.mockResolvedValue({ createdAt: oldDate });
     mockPrisma.npsSurvey.findFirst.mockResolvedValue(null);
-    mockPrisma.customerHealthScore = { findMany: jest.fn().mockResolvedValue([]) } as any;
+    mockPrisma.customerHealthScore.findMany.mockResolvedValue([]);
 
     const signals = await service.detectChurnSignals('cust-1');
 
@@ -297,7 +306,7 @@ describe('SatisfactionService', () => {
       type: 'nps',
       status: 'responded',
     });
-    mockPrisma.customerHealthScore = { findMany: jest.fn().mockResolvedValue([]) } as any;
+    mockPrisma.customerHealthScore.findMany.mockResolvedValue([]);
 
     const signals = await service.detectChurnSignals('cust-1');
 

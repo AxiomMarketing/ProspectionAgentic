@@ -12,9 +12,7 @@ import {
 import { Roles } from '@common/decorators/roles.decorator';
 import { ZodValidationPipe } from '@common/pipes/zod-validation.pipe';
 import { CsmService } from '../../application/services/csm.service';
-import {
-  OnboardCustomerSchema,
-} from '../../application/dtos/onboard-customer.dto';
+import { OnboardCustomerSchema, ReferralSubmitSchema, UpdateCustomerSchema } from '../../application/dtos/onboard-customer.dto';
 
 @Controller('agents/csm')
 export class CsmController {
@@ -53,7 +51,7 @@ export class CsmController {
 
   @Patch('customers/:id')
   @Roles('admin', 'manager')
-  async updateCustomer(@Param('id', ParseUUIDPipe) id: string, @Body() body: any) {
+  async updateCustomer(@Param('id', ParseUUIDPipe) id: string, @Body(new ZodValidationPipe(UpdateCustomerSchema)) body: any) {
     return this.csmService.updateCustomer(id, body);
   }
 
@@ -154,17 +152,11 @@ export class CsmController {
   }
 
   @Post('referral/submit/:code')
+  @Roles('admin', 'manager')
   async submitReferral(
     @Param('code') code: string,
-    @Body()
-    body: {
-      prenom: string;
-      nom: string;
-      email: string;
-      entreprise: string;
-      besoin: string;
-      telephone?: string;
-    },
+    @Body(new ZodValidationPipe(ReferralSubmitSchema))
+    body: any,
   ) {
     return this.csmService.submitReferral(code, body);
   }

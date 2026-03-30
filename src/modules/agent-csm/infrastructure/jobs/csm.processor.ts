@@ -83,12 +83,27 @@ export class CsmProcessor extends WorkerHost {
           await this.csmService.dailyHealthSnapshot();
           break;
 
-        case 'check-onboarding-risks':
         case 'evaluate-upsell':
+          await this.csmService.evaluateUpsell(data.customerId);
+          break;
+
         case 'request-review':
+          await this.csmService.requestReviews(data.customerId, data.npsScore);
+          break;
+
         case 'invite-to-referral':
-        case 'send-nps-survey':
+          await this.csmService.inviteToReferral(data.customerId);
+          break;
+
+        case 'check-onboarding-risks':
+          await this.csmService.checkOnboardingRisks();
+          break;
+
         case 'check-churn-signals':
+          await this.csmService.detectChurnSignals(data.customerId);
+          break;
+
+        case 'send-nps-survey':
           this.logger.log({
             msg: 'action deferred — service not yet implemented',
             jobId: job.id,

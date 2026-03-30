@@ -18,6 +18,7 @@ import redisConfig from '@core/config/redis.config';
 import llmConfig from '@core/config/llm.config';
 import jwtConfig from '@core/config/jwt.config';
 import enrichmentConfig from '@core/config/enrichment.config';
+import csmConfig from '@core/config/csm.config';
 
 // Common module
 import { CommonModule } from '@common/common.module';
@@ -58,7 +59,7 @@ import { DashboardModule } from '@modules/dashboard/dashboard.module';
     ConfigModule.forRoot({
       isGlobal: true,
       cache: true,
-      load: [appConfig, databaseConfig, redisConfig, llmConfig, jwtConfig, enrichmentConfig],
+      load: [appConfig, databaseConfig, redisConfig, llmConfig, jwtConfig, enrichmentConfig, csmConfig],
     }),
 
     // Logging (Pino)

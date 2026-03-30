@@ -365,7 +365,7 @@ export class UpsellService {
     await this.dealmakerQueue.add('upsell-opportunity', {
       type: 'upsell_opportunity',
       client_id: customerId,
-      existing_deal_id: opportunity.customerId,
+      existing_deal_id: opportunity.dealId ?? '',
       upsell: {
         product_target: opportunity.productTarget,
         estimated_value: opportunity.estimatedValue,

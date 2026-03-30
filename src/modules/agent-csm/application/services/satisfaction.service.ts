@@ -51,11 +51,6 @@ export class SatisfactionService {
     const healthScore = Math.round(engagement * 0.4 + satisfaction * 0.3 + growth * 0.3);
     const healthLabel = this.getHealthLabel(healthScore);
 
-    // Supercede old score, create new
-    const existing = await this.healthScoreRepository.findLatestByCustomerId(customerId);
-    if (existing) {
-      await this.healthScoreRepository.save(existing.supercede());
-    }
     const score = HealthScore.create({
       customerId,
       healthScore,
@@ -67,7 +62,30 @@ export class SatisfactionService {
       npsScore: undefined,
       signals: {},
     });
-    await this.healthScoreRepository.save(score);
+
+    await this.prisma.$transaction(async (tx) => {
+      // Supercede all existing latest scores for this customer
+      await tx.customerHealthScore.updateMany({
+        where: { customerId, isLatest: true },
+        data: { isLatest: false },
+      });
+      // Create the new latest score
+      await tx.customerHealthScore.create({
+        data: {
+          id: score.id,
+          customerId,
+          healthScore: score.healthScore,
+          healthLabel: score.healthLabel,
+          usageScore: score.usageScore,
+          supportScore: score.supportScore,
+          financialScore: score.financialScore,
+          engagementScore: score.engagementScore,
+          npsScore: score.npsScore ?? null,
+          signals: (score.signals ?? {}) as any,
+          isLatest: true,
+        },
+      });
+    });
 
     this.eventEmitter.emit('health.calculated', { customerId, healthScore, healthLabel });
 
