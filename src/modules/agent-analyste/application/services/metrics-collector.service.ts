@@ -469,12 +469,12 @@ export class MetricsCollectorService implements OnModuleDestroy {
         _sum: { amountEur: true },
       }),
       this.prisma.dealCrm.aggregate({
-        where: { closedAt: { gte: dayStart, lte: dayEnd }, stage: 'closed_won' },
+        where: { closedAt: { gte: dayStart, lte: dayEnd }, stage: 'GAGNE' },
         _sum: { amountEur: true },
         _count: { id: true },
       }),
       this.prisma.dealCrm.aggregate({
-        where: { stage: { in: ['discovery', 'proposal', 'negotiation'] } },
+        where: { stage: { in: ['QUALIFICATION', 'DEVIS_CREE', 'NEGOCIATION'] } },
         _sum: { amountEur: true },
       }),
     ]);
@@ -482,10 +482,10 @@ export class MetricsCollectorService implements OnModuleDestroy {
     const countByStage = (stage: string) =>
       dealGroups.find((g) => g.stage === stage)?._count.id ?? 0;
 
-    const dealsGagnes = revenuAgg._count.id;
-    const dealsPerdus = countByStage('closed_lost');
-    const revenuJour = revenuAgg._sum.amountEur ?? 0;
-    const valeurTotale_ = valeurTotale._sum.amountEur ?? 0;
+    const dealsGagnes = revenuAgg._count?.id ?? 0;
+    const dealsPerdus = countByStage('PERDU');
+    const revenuJour = revenuAgg._sum?.amountEur ?? 0;
+    const valeurTotale_ = valeurTotale._sum?.amountEur ?? 0;
 
     const prospectsContactes = await this.prisma.prospect.count({
       where: {

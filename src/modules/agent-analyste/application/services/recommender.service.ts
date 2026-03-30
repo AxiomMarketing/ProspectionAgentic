@@ -185,7 +185,7 @@ export class RecommenderService implements OnModuleDestroy {
     const conversions = await this.prisma.dealCrm.count({
       where: {
         prospectId: { in: hotProspectIds },
-        stage: { in: ['closed_won'] },
+        stage: { in: ['GAGNE'] },
       },
     });
 
@@ -232,7 +232,7 @@ export class RecommenderService implements OnModuleDestroy {
       const deals = await this.prisma.dealCrm.count({
         where: {
           prospectId: { in: prospectIds },
-          stage: 'closed_won',
+          stage: 'GAGNE',
         },
       });
 
