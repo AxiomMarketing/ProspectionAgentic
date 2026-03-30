@@ -635,6 +635,120 @@ export class DashboardService {
     };
   }
 
+  // ═══════════════ AGENT 6 — NURTUREUR ═══════════════
+  async getNurtureurMetrics(): Promise<any> {
+    const [activeSequences, completedSequences, exitedSequences, engagementAvg] = await Promise.all([
+      this.prisma.nurtureProspect.count({ where: { status: 'active' } }),
+      this.prisma.nurtureProspect.count({ where: { status: 'completed' } }),
+      this.prisma.nurtureProspect.count({ where: { status: 'exited' } }),
+      this.prisma.nurtureProspect.aggregate({ _avg: { engagementScoreCurrent: true } }),
+    ]);
+    const total = activeSequences + completedSequences + exitedSequences;
+    return {
+      activeSequences,
+      completedSequences,
+      exitedSequences,
+      totalSequences: total,
+      completionRate: total > 0 ? Math.round((completedSequences / total) * 100) : 0,
+      avgEngagementScore: Math.round(engagementAvg._avg?.engagementScoreCurrent ?? 0),
+      byStage: await this.prisma.nurtureProspect.groupBy({
+        by: ['journeyStage'],
+        where: { status: 'active' },
+        _count: { id: true },
+      }),
+    };
+  }
+
+  // ═══════════════ AGENT 7 — ANALYSTE ═══════════════
+  async getAnalysteMetrics(): Promise<any> {
+    const [alertes, recommendations, latestMetrics] = await Promise.all([
+      this.prisma.alertes.groupBy({ by: ['severity'], _count: { id: true } }),
+      this.prisma.agentEvent.count({ where: { agentName: 'analyste', eventType: 'recommendation_generated' } }),
+      this.prisma.metriquesDaily.findFirst({ orderBy: { dateSnapshot: 'desc' } }),
+    ]);
+    return {
+      alertsBySeverity: Object.fromEntries(alertes.map((a: { severity: string; _count: { id: number } }) => [a.severity, a._count.id])),
+      totalAlerts: alertes.reduce((sum: number, a: { _count: { id: number } }) => sum + a._count.id, 0),
+      recommendationsGenerated: recommendations,
+      latestMetrics: latestMetrics ? {
+        leadsDetected: latestMetrics.veilleurLeadsBruts,
+        conversionRate: latestMetrics.enrichisseurTauxEnrichissement,
+        costPerLead: latestMetrics.veilleurCoutApiEur,
+      } : null,
+    };
+  }
+
+  // ═══════════════ AGENT 8 — DEALMAKER ═══════════════
+  async getDealmakerMetrics(): Promise<any> {
+    const [dealsByStage, totalDeals, wonDeals, lostDeals, avgValue] = await Promise.all([
+      this.prisma.dealCrm.groupBy({ by: ['stage'], _count: { id: true }, _sum: { amountEur: true } }),
+      this.prisma.dealCrm.count(),
+      this.prisma.dealCrm.count({ where: { stage: 'GAGNE' } }),
+      this.prisma.dealCrm.count({ where: { stage: 'PERDU' } }),
+      this.prisma.dealCrm.aggregate({ _avg: { amountEur: true } }),
+    ]);
+    return {
+      totalDeals,
+      wonDeals,
+      lostDeals,
+      winRate: totalDeals > 0 ? Math.round((wonDeals / totalDeals) * 100) : 0,
+      avgDealValue: Math.round(avgValue._avg?.amountEur ?? 0),
+      pipeline: dealsByStage.map(d => ({
+        stage: d.stage,
+        count: d._count.id,
+        value: d._sum?.amountEur ?? 0,
+      })),
+    };
+  }
+
+  // ═══════════════ AGENT 9 — APPELS D'OFFRES ═══════════════
+  async getAppelsOffresMetrics(): Promise<any> {
+    const [tendersByStatus, totalTenders, wonTenders] = await Promise.all([
+      this.prisma.publicTender.groupBy({ by: ['status'], _count: { id: true } }),
+      this.prisma.publicTender.count(),
+      this.prisma.publicTender.count({ where: { status: 'WON' } }),
+    ]);
+    return {
+      totalTenders,
+      wonTenders,
+      winRate: totalTenders > 0 ? Math.round((wonTenders / totalTenders) * 100) : 0,
+      byStatus: Object.fromEntries(tendersByStatus.map(t => [t.status, t._count.id])),
+      activePipeline: tendersByStatus.filter(t => !['WON', 'LOST', 'IGNORED'].includes(t.status)).reduce((sum, t) => sum + t._count.id, 0),
+    };
+  }
+
+  // ═══════════════ AGENT 10 — CSM ═══════════════
+  async getCsmMetrics(): Promise<any> {
+    const [customers, healthScores, churnSignals, upsellOpps, referralPrograms, reviews, onboardingRisks] = await Promise.all([
+      this.prisma.customer.groupBy({ by: ['status'], _count: { id: true } }),
+      this.prisma.customerHealthScore.findMany({ where: { isLatest: true }, select: { healthScore: true, healthLabel: true } }),
+      this.prisma.churnSignal.count({ where: { resolvedAt: null } }),
+      this.prisma.upsellOpportunity.groupBy({ by: ['status'], _count: { id: true }, _sum: { estimatedValue: true } }),
+      this.prisma.referralProgram.count({ where: { status: 'active' } }),
+      this.prisma.reviewRequest.count({ where: { reviewReceived: true } }),
+      this.prisma.onboardingRisk.count({ where: { resolvedAt: null, severity: { in: ['high', 'critical'] } } }),
+    ]);
+
+    const healthDist = { green: 0, yellow: 0, orange: 0, dark_orange: 0, red: 0 };
+    let totalScore = 0;
+    for (const hs of healthScores) {
+      totalScore += hs.healthScore;
+      if (hs.healthLabel && hs.healthLabel in healthDist) healthDist[hs.healthLabel as keyof typeof healthDist]++;
+    }
+
+    return {
+      totalCustomers: customers.reduce((sum, c) => sum + c._count.id, 0),
+      customersByStatus: Object.fromEntries(customers.map(c => [c.status, c._count.id])),
+      avgHealthScore: healthScores.length > 0 ? Math.round(totalScore / healthScores.length) : 0,
+      healthDistribution: healthDist,
+      activeChurnSignals: churnSignals,
+      upsellPipeline: upsellOpps.map(u => ({ status: u.status, count: u._count.id, value: u._sum?.estimatedValue ?? 0 })),
+      activeAmbassadors: referralPrograms,
+      reviewsCollected: reviews,
+      atRiskOnboardings: onboardingRisks,
+    };
+  }
+
   async getAgentGraph() {
     const agentStatuses = await this.getAgentStatuses();
     const statusMap = new Map(agentStatuses.map((a) => [a.name, a.status as 'idle' | 'running' | 'error' | 'paused']));

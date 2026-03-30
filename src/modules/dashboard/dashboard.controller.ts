@@ -101,6 +101,36 @@ export class DashboardController {
     );
   }
 
+  @Get('agents/nurtureur/metrics')
+  @Roles('admin', 'manager', 'viewer')
+  async getNurtureurMetrics() {
+    return this.dashboardService.getNurtureurMetrics();
+  }
+
+  @Get('agents/analyste/metrics')
+  @Roles('admin', 'manager', 'viewer')
+  async getAnalysteMetrics() {
+    return this.dashboardService.getAnalysteMetrics();
+  }
+
+  @Get('agents/dealmaker/metrics')
+  @Roles('admin', 'manager', 'viewer')
+  async getDealmakerMetrics() {
+    return this.dashboardService.getDealmakerMetrics();
+  }
+
+  @Get('agents/appels-offres/metrics')
+  @Roles('admin', 'manager', 'viewer')
+  async getAppelsOffresMetrics() {
+    return this.dashboardService.getAppelsOffresMetrics();
+  }
+
+  @Get('agents/csm/metrics')
+  @Roles('admin', 'manager', 'viewer')
+  async getCsmMetrics() {
+    return this.dashboardService.getCsmMetrics();
+  }
+
   @Roles('admin', 'manager', 'viewer')
   @Get('agents/graph')
   async getAgentGraph() {
